@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Web 编程游戏 (JavaScript)</title>
+  <script id="ace-loader" src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/ace.js"></script>
+  <style>
+    :root{ --bg:#111;--panel:#1b1b1b;--panel2:#222;--ink:#eee;--accent:#4caf50;--grid:#555; }
+    *{box-sizing:border-box}
+    body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto 1fr auto auto;
+      grid-template-areas:
+        "header header"
+        "editor game"
+        "footer footer"
+        "console console";
+      height: 100vh; margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: var(--bg); color: var(--ink);
+    }
+    header{grid-area:header; padding:10px 14px; background:var(--panel); border-bottom:1px solid #333; display:flex; gap:12px; align-items:center}
+    header h1{font-size:16px;margin:0;opacity:.9}
+    #lang-note{font-size:12px;opacity:0.8;color:#ccc;margin-left:auto;}
+    #editor { grid-area: editor; height: calc(100vh - 120px); min-height: 300px; border-right:1px solid #333; }
+    #game   { grid-area: game; display:flex; align-items:center; justify-content:center; background:var(--panel2); position:relative; }
+    /* 科技树覆盖层 */
+    #tech-overlay{ position:absolute; inset: 5% 5%; background:rgba(0,0,0,0.8); border:1px solid #333; border-radius:12px; padding:14px; display:none; color:#eee; }
+    #tech-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+    #tech-title{ font-weight:700; }
+    #tech-close{ background:#3a3a3a; }
+    #tech-grid{ display:grid; grid-template-columns: repeat(3, minmax(160px, 1fr)); gap:10px; }
+    .tech-card{ background:#1f1f1f; border:1px solid #444; border-radius:10px; padding:10px; }
+    .tech-name{ font-weight:600; margin-bottom:6px; }
+    .tech-status{ font-size:12px; opacity:.85; margin-bottom:6px; }
+    .req{ font-size:12px; color:#ccc; }
+    .req .ok{ color:#4caf50; }
+    .req .need{ color:#f0ad4e; }
+    /* 依赖徽章 */
+    .deps{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+    .dep-badge{ display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; border:1px solid #444; }
+    .dep-badge.ok{ background:#234a23; color:#b6f2b6; border-color:#2d6a2d; }
+    .dep-badge.need{ background:#4a2323; color:#f2b6b6; border-color:#6a2d2d; }
+    canvas { background:#333; border:2px solid #555; width: 90%; height: 90%; max-width:520px; max-height:520px; }
+    footer{grid-area:footer; padding:10px 14px; background:var(--panel); border-top:1px solid #333; display:flex; gap:8px; align-items:center;}
+    #console-panel{grid-area:console; background:var(--panel); border-top:1px solid #333;}
+    #console{color:#ddd}
+    #console > summary{cursor:pointer; padding:8px 14px; font-weight:600; list-style:none}
+    #console-output{padding:8px 14px; height:160px; overflow-y:auto; overflow-x:hidden; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px; line-height:1.5;}
+    .log-line{white-space:pre-wrap; word-break:break-word}
+    button { background: var(--accent); border: none; color: white; padding: 8px 16px; cursor: pointer; border-radius: 8px; font-weight:600; }
+    button.secondary{ background:#3a3a3a }
+    #msg{ margin-left: 8px; font-size: 12px; opacity:.9 }
+    #inventory{ margin-left:20px; font-size:12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Web 编程游戏 · move/plant/harvest 控制小人与作物</h1>
+    <span id="msg">等待初始化…</span>
+    <span id="inventory">🎒 背包: </span>
+    <span id="lang-note">🟨 当前脚本语言：JavaScript</span>
+    <button id="toggle-tech" class="secondary" style="margin-left:12px">科技树</button>
+  </header>
+
+  <div id="editor">// 示例：
+// move('right')
+// plant('土豆')
+// move('down')
+// harvest()
+
+move('right')
+plant('土豆')
+move('down')
+harvest()</div>
+
+  <div id="game">
+    <canvas id="map" width="400" height="400"></canvas>
+    <div id="tech-overlay">
+      <div id="tech-header">
+        <div id="tech-title">科技树</div>
+        <button id="tech-close" class="secondary">关闭</button>
+      </div>
+      <div id="tech-grid"></div>
+    </div>
+  </div>
+
+  <footer>
+    <button id="run">运行</button>
+    <button id="reset" class="secondary">重置</button>
+    <label for="timeout-ms" style="margin-left:8px;font-size:12px;opacity:.85">超时(ms)</label>
+    <input id="timeout-ms" type="number" min="0" step="100" value="600000" style="width:90px;margin-left:6px;background:#2a2a2a;border:1px solid #444;color:#ddd;padding:4px 6px;border-radius:6px;">
+  </footer>
+
+  <div id="console-panel">
+    <details id="console" open>
+      <summary>控制台输出</summary>
+      <div id="console-output"></div>
+    </details>
+  </div>
+  <script src="unlock.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

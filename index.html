@@ -25,24 +25,42 @@
     #lang-note{font-size:12px;opacity:0.8;color:#ccc;margin-left:auto;}
     #editor { grid-area: editor; height: calc(100vh - 120px); min-height: 300px; border-right:1px solid #333; }
     #game   { grid-area: game; display:flex; align-items:center; justify-content:center; background:var(--panel2); position:relative; }
-    /* 科技树覆盖层 */
-    #tech-overlay{ position:absolute; inset: 5% 5%; background:rgba(0,0,0,0.8); border:1px solid #333; border-radius:12px; padding:14px; display:none; color:#eee; }
+    /* 科技树覆盖层（窗口级别） */
+    #tech-overlay{ position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.85); border:1px solid #333; border-radius:12px; padding:14px; display:none; color:#eee; }
     #tech-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
     #tech-title{ font-weight:700; }
     #tech-close{ background:#3a3a3a; }
-    #tech-grid{ display:grid; grid-template-columns: repeat(3, minmax(160px, 1fr)); gap:10px; }
-    .tech-card{ background:#1f1f1f; border:1px solid #444; border-radius:10px; padding:10px; }
-    .tech-name{ font-weight:600; margin-bottom:6px; }
-    .tech-status{ font-size:12px; opacity:.85; margin-bottom:6px; }
-    .req{ font-size:12px; color:#ccc; }
-    .req .ok{ color:#4caf50; }
-    .req .need{ color:#f0ad4e; }
-    /* 依赖徽章 */
-    .deps{ display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
-    .dep-badge{ display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; border:1px solid #444; }
-    .dep-badge.ok{ background:#234a23; color:#b6f2b6; border-color:#2d6a2d; }
-    .dep-badge.need{ background:#4a2323; color:#f2b6b6; border-color:#6a2d2d; }
+    /* 科技树滚动容器与关系图 */
+    #tech-scroll{ position:relative; height: calc(100% - 40px); overflow-y:auto; overflow-x:hidden; }
+    #tech-graph{ position:relative; width:100%; min-height:100%; }
+    .tech-node{ position:absolute; background:#1f1f1f; border:1px solid #444; border-radius:10px; padding:10px; width:300px; height:160px; overflow:hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+    .tech-node.unlocked{ border-color:#2d6a2d; }
+    .tech-node.locked{ border-color:#6a2d2d; }
+    .tech-node.clickable{ cursor:pointer; }
+    .tech-name{ font-weight:600; margin-bottom:6px; text-align:center; font-size:16px; }
+    .tech-status{ font-size:13px; opacity:.85; margin-bottom:6px; text-align:center; }
+    .req{ font-size:13px; color:#ccc; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     canvas { background:#333; border:2px solid #555; width: 90%; height: 90%; max-width:520px; max-height:520px; }
+    /* 专用于科技树 Pixi 画布，覆盖全局 canvas 限制 */
+    #tech-canvas { 
+      width: 100% !important; 
+      height: 100% !important; 
+      max-width: none !important; 
+      max-height: none !important; 
+      display: block !important;
+      background: transparent !important; 
+      border: 0 !important;
+    }
+    /* 作为兜底：若 tech-canvas id 变更，容器内的 canvas 也应撑满 */
+    #tech-graph > canvas { 
+      width: 100% !important; 
+      height: 100% !important; 
+      max-width: none !important; 
+      max-height: none !important; 
+      display: block !important;
+      background: transparent !important; 
+      border: 0 !important;
+    }
     footer{grid-area:footer; padding:10px 14px; background:var(--panel); border-top:1px solid #333; display:flex; gap:8px; align-items:center;}
     #console-panel{grid-area:console; background:var(--panel); border-top:1px solid #333;}
     #console{color:#ddd}
@@ -82,7 +100,11 @@ harvest()</div>
         <div id="tech-title">科技树</div>
         <button id="tech-close" class="secondary">关闭</button>
       </div>
-      <div id="tech-grid"></div>
+      <div id="tech-scroll">
+        <div id="tech-graph">
+          
+        </div>
+      </div>
     </div>
   </div>
 
@@ -99,7 +121,10 @@ harvest()</div>
       <div id="console-output"></div>
     </details>
   </div>
-  <script src="unlock.js"></script>
-  <script src="main.js"></script>
+  <!-- 引入 PixiJS 游戏框架 -->
+  <script src="./asset/js/pixi.min.js"></script>
+ 
+  <script type="module" src="js/main.js"></script>
+
 </body>
 </html>

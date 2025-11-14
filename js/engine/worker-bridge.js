@@ -5,6 +5,7 @@ export function handleWorkerCallFactory(ctx) {
     move, plant, harvest, spawn, despawn, setActive,
     getEntity, getPlayer,
     pendingFrameReqs,
+    changeCharacter,
     app,
     msg
   } = ctx;
@@ -72,6 +73,17 @@ export function handleWorkerCallFactory(ctx) {
         respond(true);
         return;
       }
+      case 'change_character':
+      case 'changeCharacter': {
+        const typeKey = args && args[0];
+        const id = args && args[1];
+
+        changeCharacter(typeKey, id);
+       
+        respond(true);
+        return;
+      }
+     
       case 'doAFlip':
       case 'do_a_flip': {
         const id = args && args[0];

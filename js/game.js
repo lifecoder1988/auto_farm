@@ -5,6 +5,12 @@ import { drawMapFrame } from './engine/map.js';
 import { handleWorkerCallFactory } from './engine/worker-bridge.js';
 import { cssHexToInt, hslToInt } from './utils/color.js';
 
+import { CharacterManager } from './engine/characters/CharacterManager.js';
+
+import { CropManager } from './engine/crops/CropManager.js';
+
+
+
 import { initUnlockUI, updateUnlock } from './unlock/unlock-ui.js';
 
 import { TECH_TREE } from './data/unlock.js';
@@ -19,6 +25,9 @@ export function initGame() {
   const techCloseBtn = document.getElementById('tech-close');
   const runBtn = document.getElementById('run');
   const timeoutInput = document.getElementById('timeout-ms');
+
+ 
+  
 
   msg.textContent = '已就绪 ✅';
 
@@ -42,7 +51,14 @@ export function initGame() {
     antialias: true
   });
 
- initUnlockUI(app, TECH_TREE);
+  const characterManager = new CharacterManager();
+  app.characterManager = characterManager;
+
+  // Pixi 初始化后
+  app.cropManager = new CropManager();
+
+
+  initUnlockUI(app, TECH_TREE);
 
 
   app.view.id = 'map';
@@ -62,7 +78,7 @@ export function initGame() {
 
   let crops = app.state.crops;
   let entities = [
-    { id: 0, x: 0, y: 0, Items: { potato: 0, peanut: 0, pumpkin: 0, straw: 0 }, hat: 'Straw_Hat' }
+    { id: 0, x: 0, y: 0, Items: { potato: 0, peanut: 0, pumpkin: 0, straw: 0 },type:'drone', hat: 'Straw_Hat' }
   ];
   let activeEntityId = 0;
 
@@ -101,34 +117,7 @@ export function initGame() {
     '稻草': { time: 0, item: 'straw' }
   };
 
-  const HatColors = {
-    'Straw_Hat': '#c8a85f',
-    'Brown_Hat': '#795548',
-    'Gray_Hat': '#9e9e9e',
-    'Green_Hat': '#4caf50',
-    'Purple_Hat': '#9c27b0',
-    'Top_Hat': '#212121',
-    'Wizard_Hat': '#3949ab',
-    'Traffic_Cone': '#fb8c00',
-    'Traffic_Cone_Stack': '#ef6c00',
-    'Pumpkin_Hat': '#ff9800',
-    'Carrot_Hat': '#ff5722',
-    'Tree_Hat': '#2e7d32',
-    'Sunflower_Hat': '#fdd835',
-    'Cactus_Hat': '#43a047',
-    'Dinosaur_Hat': '#26a69a',
-    'Gold_Hat': '#ffd54f',
-    'Gold_Trophy_Hat': '#ffca28',
-    'Golden_Cactus_Hat': '#c0ca33',
-    'Golden_Carrot_Hat': '#fbc02d',
-    'Golden_Gold_Hat': '#ffb300',
-    'Golden_Pumpkin_Hat': '#f9a825',
-    'Golden_Sunflower_Hat': '#fdd835',
-    'Golden_Tree_Hat': '#c0ca33',
-    'Silver_Trophy_Hat': '#c0c0c0',
-    'Wood_Trophy_Hat': '#8d6e63',
-    'The_Farmers_Remains': '#6d4c41'
-  };
+  
 
   function formatArg(a) {
     if (typeof a === 'string') return a;
@@ -184,20 +173,20 @@ export function initGame() {
 
   function plant(type, id) {
     const e = getEntity(id);
-    if (!cropTypes[type]) { msg.textContent = '未知作物 🌱'; return; }
+    if (!cropTypes[type]) {return; }
     const key = `${e.x}_${e.y}`;
-    if (crops[key]) { msg.textContent = '此格已有作物 ❌'; return; }
+    if (crops[key]) { return; }
     crops[key] = { type, plantedAt: Date.now(), matureTime: cropTypes[type].time };
-    msg.textContent = `${type} 已种下 🌾`;
+    
   }
 
   function harvest(id) {
     const e = getEntity(id);
     const key = `${e.x}_${e.y}`;
     const crop = crops[key];
-    if (!crop) { msg.textContent = '这里没有作物 🌱'; return; }
+    if (!crop) {  return; }
     const elapsed = Date.now() - crop.plantedAt;
-    if (elapsed < crop.matureTime) { msg.textContent = `${crop.type} 尚未成熟 ⏳`; return; }
+    if (elapsed < crop.matureTime) {  return; }
     const itemKey = cropTypes[crop.type].item;
     const levels = (app && app.state && app.state.techLevels) ? app.state.techLevels : {};
     const pumpkinLvl = Number(levels['pumpkin'] || 0);
@@ -207,15 +196,15 @@ export function initGame() {
       app.state.items[itemKey] = (app.state.items[itemKey] || 0) + yieldQty;
     }
     delete crops[key];
-    msg.textContent = `${crop.type} 已收获 ✅ (+${yieldQty})`;
+    
     updateInventory();
   }
 
   function spawn() {
     const newId = entities.length ? Math.max(...entities.map(x => x.id)) + 1 : 0;
     const ref = getEntity(activeEntityId);
-    entities.push({ id: newId, x: ref.x, y: ref.y, Items: { potato: 0, peanut: 0, pumpkin: 0, straw: 0 }, hat: 'Straw_Hat' });
-    msg.textContent = `新的小人已生成 👤 #${newId} 于 (${ref.x},${ref.y})`;
+    entities.push({ id: newId, x: ref.x, y: ref.y, type: ref.type,  Items: { potato: 0, peanut: 0, pumpkin: 0, straw: 0 }, hat: 'Straw_Hat' });
+   
     return newId;
   }
 
@@ -223,11 +212,38 @@ export function initGame() {
     const found = entities.find(e => e.id === id);
     if (found) {
       activeEntityId = id;
-      msg.textContent = `当前控制小人切换为 #${id}`;
+     
       updateInventory();
     } else {
-      msg.textContent = `未找到小人 #${id}`;
+     
     }
+  }
+
+  // 切换角色类型（例如 'drone' 或 'dino'）
+  function changeCharacter(typeKey, id) {
+    const e = getEntity(id);
+    const key = String(typeKey || '').trim().toLowerCase();
+    const map = {
+      'drone': 'drone',
+      '无人机': 'drone',
+      'dino': 'dino',
+      '恐龙': 'dino',
+      'dinosaur': 'dino'
+    };
+
+    const nextType = map[key];
+    if (!nextType) {
+      //if (msg) msg.textContent = '未知角色类型: ' + typeKey;
+      return;
+    }
+
+    if (e.type === nextType) {
+      //if (msg) msg.textContent = '角色已是 ' + nextType;
+      return;
+    }
+
+    e.type = nextType;
+    //if (msg) msg.textContent = `角色已切换为 ${nextType === 'drone' ? '无人机' : '恐龙'} ✅`;
   }
 
   function despawn(id) {
@@ -237,20 +253,20 @@ export function initGame() {
       entities.splice(idx, 1);
       if (entities.length === 0) {
         entities = [
-          { id: 0, x: 0, y: 0, Items: { potato: 0, peanut: 0, pumpkin: 0, straw: 0 }, hat: 'Straw_Hat' }
+          { id: 0, x: 0, y: 0, Items: { potato: 0, peanut: 0, pumpkin: 0, straw: 0 }, type: 'drone', hat: 'Straw_Hat' }
         ];
       }
       if (activeEntityId === removed.id) {
         activeEntityId = entities[0].id;
       }
-      msg.textContent = `小人 #${removed.id} 已消失 🫥`;
+      
       updateInventory();
     }
   }
 
   function reset() {
     entities = [
-      { id: 0, x: 0, y: 0, Items: { potato: 0, peanut: 0, pumpkin: 0, straw: 0 }, hat: 'Straw_Hat' }
+      { id: 0, x: 0, y: 0, Items: { potato: 0, peanut: 0, pumpkin: 0, straw: 0 }, type: 'drone', hat: 'Straw_Hat' }
     ];
     activeEntityId = 0;
     if (app && app.state) {
@@ -267,11 +283,12 @@ export function initGame() {
   // Worker call handler（抽成一个工厂函数）
   const handleWorkerCall = handleWorkerCallFactory({
     move, plant, harvest, spawn, despawn, setActive,
-    getEntity: (id) => ({ ...getEntity(id) }),
+    getEntity: (id) => ({...getEntity(id)}),
     getPlayer: () => ({ ...getEntity(activeEntityId) }),
     pendingFrameReqs,
     app,
-    msg
+    msg,
+    changeCharacter
   });
 
   function setRunning(v) {

@@ -186,6 +186,7 @@ export function initGame() {
     const key = `${e.x}_${e.y}`;
     const crop = crops[key];
     if (!crop) { return false; }
+    
     const elapsed = Date.now() - crop.plantedAt;
     return elapsed >= (crop.matureTime || 0);
   }

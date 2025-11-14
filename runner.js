@@ -246,7 +246,33 @@ function injectWaitIntoWhile(code) {
   return code.replace(/while\s*\([^)]*\)\s*\{/g, (m) => `${m}\n await waitFrame();\n`);
 }
 
+
+function autoAwaitAsyncApi(code) {
+  // 需要自动 await 的 API
+  const apis = [
+    "move",
+    "plant",
+    "harvest",
+    "delay",
+    "waitFrame",
+    "doAFlip",
+    "changeCharacter",
+    "change_character",
+    "getEntity",
+    "getPosition"
+  ];
+
+  for (const api of apis) {
+    // 匹配 "api(" 但不包含 "await api("
+    const reg = new RegExp(`(?<!await\\s+)(\\b${api}\\s*\\()`, "g");
+    code = code.replace(reg, `await ${api}(`);
+  }
+
+  return code;
+}
+
 // ===================== 执行用户脚本 =====================
+
 
 async function runUserCode(raw) {
   const stripped = strip(raw);
@@ -256,6 +282,7 @@ async function runUserCode(raw) {
 
   if (slowMode) {
     code = transformSpawn(code);
+    code = autoAwaitAsyncApi(code);
     if (usesWhile) code = injectWaitIntoWhile(code);
   }
 

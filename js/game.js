@@ -180,6 +180,16 @@ export function initGame() {
     
   }
 
+  // 检查当前位置是否有作物且已成熟
+  function canHarvest(id) {
+    const e = getEntity(id);
+    const key = `${e.x}_${e.y}`;
+    const crop = crops[key];
+    if (!crop) { return false; }
+    const elapsed = Date.now() - crop.plantedAt;
+    return elapsed >= (crop.matureTime || 0);
+  }
+
   function harvest(id) {
     const e = getEntity(id);
     const key = `${e.x}_${e.y}`;
@@ -282,7 +292,7 @@ export function initGame() {
 
   // Worker call handler（抽成一个工厂函数）
   const handleWorkerCall = handleWorkerCallFactory({
-    move, plant, harvest, spawn, despawn, setActive,
+    move, plant, harvest, canHarvest, spawn, despawn, setActive,
     getEntity: (id) => ({...getEntity(id)}),
     getPlayer: () => ({ ...getEntity(activeEntityId) }),
     pendingFrameReqs,

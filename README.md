@@ -4,6 +4,9 @@ A JavaScript-based coding farm game. Inspired by The Farmer Was Replaced.
 
 The core goal is to help players learn programming by writing code that controls characters in a 2D farm.
 
+## Play Online
+- Live demo: https://play.loki.wang
+
 ## Overview
 - Control one or more characters to plant crops on a 2D map.
 - Harvest items to unlock a technology tree (skills and features).

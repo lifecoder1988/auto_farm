@@ -2,7 +2,7 @@
 
 export function handleWorkerCallFactory(ctx) {
   const {
-    move, plant, harvest, spawn, despawn, setActive,
+    move, plant, harvest, canHarvest, spawn, despawn, setActive,
     getEntity, getPlayer,
     pendingFrameReqs,
     changeCharacter,
@@ -34,6 +34,12 @@ export function handleWorkerCallFactory(ctx) {
       case 'harvest': {
         harvest(args[0]);
         respond(true);
+        return;
+      }
+      case 'canHarvest': {
+        const id = args && args[0];
+        const r = canHarvest(id);
+        respond(!!r);
         return;
       }
       case 'spawn': {

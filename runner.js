@@ -118,6 +118,12 @@ async function harvest(entityId) {
   );
 }
 
+// 检查当前格子的作物是否成熟
+async function canHarvest(entityId) {
+  const id = _resolveEntityId(entityId);
+  return callMain("canHarvest", [id], true);
+}
+
 async function waitFrame() {
   await callMain("waitFrame", [], true);
 }
@@ -180,6 +186,7 @@ async function spawn(fn, ...userArgs) {
       move: (d) => move(d, id),
       plant: (t) => plant(t, id),
       harvest: () => harvest(id),
+      canHarvest: () => canHarvest(id),
       getEntity: () => callMain("getEntity", [id], true),
       delay,
     };
@@ -222,21 +229,21 @@ function transformSpawn(code) {
   // 无参函数注入 ctx
   c = c.replace(
     /spawn\s*\(\s*async\s*function(\s+\w+)?\s*\(\s*\)\s*\{/g,
-    (m, n) => `spawn(async function${n || ""}({ move, plant, harvest, getEntity, delay, id }){`
+    (m, n) => `spawn(async function${n || ""}({ move, plant, harvest, canHarvest, getEntity, delay, id }){`
   );
   c = c.replace(
     /spawn\s*\(\s*async\s*\(\s*\)\s*=>\s*\{/g,
-    "spawn(async ({ move, plant, harvest, getEntity, delay, id }) => {"
+    "spawn(async ({ move, plant, harvest, canHarvest, getEntity, delay, id }) => {"
   );
 
   // 普通 function/arrow 也支持
   c = c.replace(
     /spawn\s*\(\s*\(\s*\)\s*=>\s*\{/g,
-    "spawn(async ({ move, plant, harvest, getEntity, delay, id }) => {"
+    "spawn(async ({ move, plant, harvest, canHarvest, getEntity, delay, id }) => {"
   );
   c = c.replace(
     /spawn\s*\(\s*function(\s+\w+)?\s*\(\s*\)\s*\{/g,
-    (m, n) => `spawn(async function${n || ""}({ move, plant, harvest, getEntity, delay, id }){`
+    (m, n) => `spawn(async function${n || ""}({ move, plant, harvest, canHarvest, getEntity, delay, id }){`
   );
 
   return c;
@@ -253,6 +260,7 @@ function autoAwaitAsyncApi(code) {
     "move",
     "plant",
     "harvest",
+    "canHarvest",
     "delay",
     "waitFrame",
     "doAFlip",
@@ -292,6 +300,7 @@ async function runUserCode(raw) {
       "move",
       "plant",
       "harvest",
+      "canHarvest",
       "getPlayer",
       "spawn",
       "setActive",
@@ -315,6 +324,7 @@ async function runUserCode(raw) {
       move,
       plant,
       harvest,
+      canHarvest,
       getPlayer,
       spawn,
       setActive,

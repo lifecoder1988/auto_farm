@@ -13,6 +13,8 @@ import { Crop } from './engine/crops/Crop.js';
 
 import { initUnlockUI, updateUnlock } from './unlock/unlock-ui.js';
 
+
+import { SnakeGame } from './engine/snake/SnakeGame.js';
 import { TECH_TREE } from './data/unlock.js';
 
 export function initGame() {
@@ -26,12 +28,12 @@ export function initGame() {
   const runBtn = document.getElementById('run');
   const timeoutInput = document.getElementById('timeout-ms');
 
- 
-  
+
+
 
   msg.textContent = '已就绪 ✅';
 
- 
+
 
   // Ace 编辑器
   const editor = ace.edit('editor');
@@ -78,13 +80,14 @@ export function initGame() {
 
   let crops = app.state.crops;
   let entities = [
-    { id: 0, x: 0, y: 0, Items: { potato: 0, peanut: 0, pumpkin: 0, straw: 0 },type:'drone', hat: 'Straw_Hat' }
+    { id: 0, x: 0, y: 0, Items: { potato: 0, peanut: 0, pumpkin: 0, straw: 0 }, type: 'drone', hat: 'Straw_Hat' }
   ];
   let activeEntityId = 0;
 
   // 图层
   const layers = initLayers(app); // 包含 soilLayer, gridLayer, cropsLayer, entitiesLayer
 
+  app.layers = layers
   // soilLayer 初始化（方案 B）
   const SOIL_URL = 'asset/image/soil.png';
   initSoilLayer({
@@ -117,7 +120,7 @@ export function initGame() {
     '稻草': { time: 0, item: 'straw' }
   };
 
-  
+
 
   function formatArg(a) {
     if (typeof a === 'string') return a;
@@ -173,19 +176,19 @@ export function initGame() {
 
   function plant(type, id) {
     const e = getEntity(id);
-    if (!cropTypes[type]) {return; }
+    if (!cropTypes[type]) { return; }
     const key = `${e.x}_${e.y}`;
     if (crops[key]) { return; }
 
     const crop = new Crop({
       type,
-      
+
       plantedAt: Date.now(),
       matureTime: cropTypes[type].time,
       key: key,
     });
     crops[key] = crop;
-    
+
   }
 
   // 检查当前位置是否有作物且已成熟
@@ -194,7 +197,7 @@ export function initGame() {
     const key = `${e.x}_${e.y}`;
     const crop = crops[key];
     if (!crop) { return false; }
-    
+
     const elapsed = Date.now() - crop.plantedAt;
     return elapsed >= (crop.matureTime || 0);
   }
@@ -203,9 +206,9 @@ export function initGame() {
     const e = getEntity(id);
     const key = `${e.x}_${e.y}`;
     const crop = crops[key];
-    if (!crop) {  return; }
+    if (!crop) { return; }
     const elapsed = Date.now() - crop.plantedAt;
-    if (elapsed < crop.matureTime) {  return; }
+    if (elapsed < crop.matureTime) { return; }
     const itemKey = cropTypes[crop.type].item;
     const levels = (app && app.state && app.state.techLevels) ? app.state.techLevels : {};
     const pumpkinLvl = Number(levels['pumpkin'] || 0);
@@ -215,15 +218,15 @@ export function initGame() {
       app.state.items[itemKey] = (app.state.items[itemKey] || 0) + yieldQty;
     }
     delete crops[key];
-    
+
     updateInventory();
   }
 
   function spawn() {
     const newId = entities.length ? Math.max(...entities.map(x => x.id)) + 1 : 0;
     const ref = getEntity(activeEntityId);
-    entities.push({ id: newId, x: ref.x, y: ref.y, type: ref.type,  Items: { potato: 0, peanut: 0, pumpkin: 0, straw: 0 }, hat: 'Straw_Hat' });
-   
+    entities.push({ id: newId, x: ref.x, y: ref.y, type: ref.type, Items: { potato: 0, peanut: 0, pumpkin: 0, straw: 0 }, hat: 'Straw_Hat' });
+
     return newId;
   }
 
@@ -231,12 +234,62 @@ export function initGame() {
     const found = entities.find(e => e.id === id);
     if (found) {
       activeEntityId = id;
-     
+
       updateInventory();
     } else {
-     
+
     }
   }
+
+
+  function exitSnakeMode(app, type) {
+    const head = app.snakeGame.model.body[0];
+
+    const e0 = entities.find(e => e.id === 0);
+    if (e0) {
+      e0.x = head.x;
+      e0.y = head.y;
+      e0.type = type; // 或 dino，随你
+    }
+
+    if (app.snakeGame && app.snakeGame.renderer) {
+      app.snakeGame.renderer.destroy();  // ⭐ 必须销毁
+    }
+
+    // 恢复农场模式
+    app.mode = 'farm';
+    app.snakeGame = null;
+
+    // 让农场重新渲染
+    app.layers.cropsLayer.removeChildren();
+    app.layers.entitiesLayer.removeChildren();
+
+    console.log("退出蛇模式: 回写 entity0 =", head.x, head.y);
+  }
+
+  function enterSnakeMode(app, tileSize, mapSize) {
+    app.mode = 'snake';
+
+    // 1) 清空农场 crop / entity 渲染
+    app.state.crops = {};
+    crops = app.state.crops;
+    app.layers.cropsLayer.removeChildren();
+    app.layers.entitiesLayer.removeChildren();
+
+    // 2) 取 entity0 的位置 → 作为蛇头初始位置
+    const e0 = entities.find(e => e.id === 0);
+    const startX = e0?.x ?? 0;
+    const startY = e0?.y ?? 0;
+
+    // 3) 创建 snakeGame，传入初始坐标
+    app.snakeGame = new SnakeGame(app, tileSize, mapSize, {
+      startX,
+      startY
+    });
+
+    console.log("进入蛇模式: 蛇头初始坐标 =", startX, startY);
+  }
+
 
   // 切换角色类型（例如 'drone' 或 'dino'）
   function changeCharacter(typeKey, id) {
@@ -246,7 +299,7 @@ export function initGame() {
       'drone': 'drone',
       '无人机': 'drone',
       'dino': 'dino',
-      '恐龙': 'dino',
+      'snake': 'snake',
       'dinosaur': 'dino'
     };
 
@@ -261,7 +314,22 @@ export function initGame() {
       return;
     }
 
+
+    // 切换到蛇模式
+    if (nextType === 'snake') {
+      enterSnakeMode(app, tileSize, mapSize);
+      return; // 不继续执行农场逻辑
+    }
+
+    // 离开蛇模式 → 进入农场模式
+    if (app.mode === 'snake' && nextType !== 'snake') {
+      exitSnakeMode(app);
+    }
+
     e.type = nextType;
+
+
+
     //if (msg) msg.textContent = `角色已切换为 ${nextType === 'drone' ? '无人机' : '恐龙'} ✅`;
   }
 
@@ -278,7 +346,7 @@ export function initGame() {
       if (activeEntityId === removed.id) {
         activeEntityId = entities[0].id;
       }
-      
+
       updateInventory();
     }
   }
@@ -302,7 +370,7 @@ export function initGame() {
   // Worker call handler（抽成一个工厂函数）
   const handleWorkerCall = handleWorkerCallFactory({
     move, plant, harvest, canHarvest, spawn, despawn, setActive,
-    getEntity: (id) => ({...getEntity(id)}),
+    getEntity: (id) => ({ ...getEntity(id) }),
     getPlayer: () => ({ ...getEntity(activeEntityId) }),
     pendingFrameReqs,
     app,
@@ -318,7 +386,8 @@ export function initGame() {
   function abortRun() {
     try { if (worker) { worker.terminate(); } } catch (_) { }
     worker = null;
-    if (runTimeoutHandle) { try { clearTimeout(runTimeoutHandle); } catch (_) { }
+    if (runTimeoutHandle) {
+      try { clearTimeout(runTimeoutHandle); } catch (_) { }
       runTimeoutHandle = null;
     }
     setRunning(false);
@@ -364,6 +433,12 @@ export function initGame() {
   }
 
   function animate() {
+
+
+    if (app.mode === 'snake') {
+      app.snakeGame.render();   // 用 PIXI ticker 的 deltaMS
+      return;
+    }
 
     app.cropManager.updateCrops(crops);
 

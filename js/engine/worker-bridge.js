@@ -19,6 +19,15 @@ export function handleWorkerCallFactory(ctx) {
       }
     }
 
+    if (app.mode === 'snake') {
+      if (name === 'move') {
+        app.snakeGame.step(args[0]);
+        respond(true);
+        return;
+      }
+      respond(null);
+    }
+
     switch (name) {
       case 'move': {
         move(args[0], args[1]);

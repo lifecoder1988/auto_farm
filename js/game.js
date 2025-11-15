@@ -8,7 +8,7 @@ import { cssHexToInt, hslToInt } from './utils/color.js';
 import { CharacterManager } from './engine/characters/CharacterManager.js';
 
 import { CropManager } from './engine/crops/CropManager.js';
-
+import { Crop } from './engine/crops/Crop.js';
 
 
 import { initUnlockUI, updateUnlock } from './unlock/unlock-ui.js';
@@ -176,7 +176,15 @@ export function initGame() {
     if (!cropTypes[type]) {return; }
     const key = `${e.x}_${e.y}`;
     if (crops[key]) { return; }
-    crops[key] = { type, plantedAt: Date.now(), matureTime: cropTypes[type].time };
+
+    const crop = new Crop({
+      type,
+      
+      plantedAt: Date.now(),
+      matureTime: cropTypes[type].time,
+      key: key,
+    });
+    crops[key] = crop;
     
   }
 
@@ -322,7 +330,7 @@ export function initGame() {
     setRunning(true);
     const code = editor.getValue();
     if (worker) { try { worker.terminate(); } catch (_) { worker = null; } }
-    worker = new Worker('runner.js');
+    worker = new Worker('./js/runner.js');
     worker.onmessage = (e) => {
       const data = e.data;
       if (!data) return;
@@ -356,6 +364,9 @@ export function initGame() {
   }
 
   function animate() {
+
+    app.cropManager.updateCrops(crops);
+
     drawMapFrame({
       app,
       mapSize,

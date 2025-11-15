@@ -3,6 +3,7 @@ import { cropsLayer } from '../layers.js';
 
 import { PotatoCrop } from './PotatoCrop.js';
 import { PumpkinCrop } from './PumpkinCrop.js';
+import { CropEventBus } from './CropEventBus.js';
 
 // 可以随时扩展更多作物：CarrotCrop, PeanutCrop...
 const CROP_TYPES = {
@@ -14,7 +15,21 @@ export class CropManager {
   constructor() {
     // key: "x_y" → { sprite, frameIdx }
     this.cropSprites = new Map();
+
+    CropEventBus.on("crop:mature", (crop, key) => {
+      console.log("作物成熟:", crop.type, key);
+    });
+
   }
+
+  updateCrops(crops) {
+  for (const key in crops) {
+    const crop = crops[key];
+    if (crop && typeof crop.checkMature === 'function') {
+      crop.checkMature();
+    }
+  }
+}
 
   draw({ crops, mapSize, tileSize }) {
     const now = Date.now();

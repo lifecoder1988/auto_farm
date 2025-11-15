@@ -15,6 +15,11 @@ export class CharacterManager {
     this.textureCache = new Map(); // type -> { frames, size }
   }
 
+  clear() {
+    this.instances.clear();
+    this.textureCache.clear();
+  }
+
   getTextures(Class) {
     if (this.textureCache.has(Class)) {
       return this.textureCache.get(Class);

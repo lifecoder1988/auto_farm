@@ -5,6 +5,9 @@ export function handleWorkerCallFactory(ctx) {
     move, plant, harvest, canHarvest, spawn, despawn, setActive,
     getEntity, getPlayer,
     pendingFrameReqs,
+    getWorldSize,
+    getTileSize,
+    setWorldSize,
     changeCharacter,
     app,
     msg
@@ -94,11 +97,11 @@ export function handleWorkerCallFactory(ctx) {
         const id = args && args[1];
 
         changeCharacter(typeKey, id);
-       
+
         respond(true);
         return;
       }
-     
+
       case 'doAFlip':
       case 'do_a_flip': {
         const id = args && args[0];
@@ -111,6 +114,23 @@ export function handleWorkerCallFactory(ctx) {
         const key = args && args[0];
         const unlocked = (app && app.state && app.state.unlocks) ? app.state.unlocks : {};
         respond(!!unlocked[key]);
+        return;
+      }
+
+      case 'getWorldSize': {
+        respond(getWorldSize());
+        return;
+      }
+
+      case 'setWorldSize': {
+        const newSize = args && args[0];
+        setWorldSize(newSize);
+        respond(true);
+        return;
+      }
+
+      case 'getTileSize': {
+        respond(getTileSize());
         return;
       }
       default:

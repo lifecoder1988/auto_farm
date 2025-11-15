@@ -68,8 +68,7 @@ export function initGame() {
     canvasEl.parentNode.replaceChild(app.view, canvasEl);
   }
 
-  const mapSize = 10;
-  let tileSize = app.view.width / mapSize;
+
 
   // 全局 state
   app.state = app.state || {};
@@ -77,6 +76,11 @@ export function initGame() {
   app.state.techLevels = app.state.techLevels || {};
   app.state.crops = app.state.crops || {};
   app.state.unlocks = app.state.unlocks || {};
+
+  app.state.worldSize = app.state.worldSize || 3;
+  app.state.tileSize = Math.floor(app.view.width / app.state.worldSize);
+
+
 
   let crops = app.state.crops;
   let entities = [
@@ -91,8 +95,8 @@ export function initGame() {
   // soilLayer 初始化（方案 B）
   const SOIL_URL = 'asset/image/soil.png';
   initSoilLayer({
-    mapSize,
-    tileSize,
+    mapSize: app.state.worldSize,
+    tileSize: app.state.tileSize,
     url: SOIL_URL,
     soilLayer: layers.soilLayer
   });
@@ -100,9 +104,9 @@ export function initGame() {
   // 网格静态绘制
   gridLayer.clear();
   gridLayer.lineStyle(1, 0x555555, 1);
-  for (let y = 0; y < mapSize; y++) {
-    for (let x = 0; x < mapSize; x++) {
-      gridLayer.drawRect(x * tileSize, y * tileSize, tileSize, tileSize);
+  for (let y = 0; y < app.state.worldSize; y++) {
+    for (let x = 0; x < app.state.worldSize; x++) {
+      gridLayer.drawRect(x * app.state.tileSize, y * app.state.tileSize, app.state.tileSize, app.state.tileSize);
     }
   }
 
@@ -120,6 +124,20 @@ export function initGame() {
     '稻草': { time: 0, item: 'straw' }
   };
 
+
+  function getWorldSize() {
+    return app.state.worldSize;
+  }
+
+  function getTileSize() {
+    return app.state.tileSize;
+  }
+
+  function setWorldSize(size) {
+    app.state.worldSize = Number(size);
+    app.state.tileSize = Math.floor(app.view.width / app.state.worldSize);
+    rebuildWorld();
+  }
 
 
   function formatArg(a) {
@@ -169,7 +187,7 @@ export function initGame() {
       case 'right': e.x++; break;
       default: throw new Error('未知方向: ' + direction);
     }
-    const wrap = (v) => ((v % mapSize) + mapSize) % mapSize;
+    const wrap = (v) => ((v % app.state.worldSize) + app.state.worldSize) % app.state.worldSize;
     e.x = wrap(e.x);
     e.y = wrap(e.y);
   }
@@ -242,6 +260,49 @@ export function initGame() {
   }
 
 
+
+  function rebuildWorld() {
+    const worldSize = getWorldSize();
+    const tileSize = getTileSize();
+
+    // 1. 清理旧图层
+    gridLayer.clear();
+    app.layers.soilLayer.removeChildren();
+    app.layers.cropsLayer.removeChildren();
+    app.layers.entitiesLayer.removeChildren();
+
+    // 2. 重绘网格
+    gridLayer.lineStyle(1, 0x555555, 1);
+    for (let y = 0; y < worldSize; y++) {
+      for (let x = 0; x < worldSize; x++) {
+        gridLayer.drawRect(x * tileSize, y * tileSize, tileSize, tileSize);
+      }
+    }
+
+    // 3. 重绘土地（soilLayer）
+    initSoilLayer({
+      mapSize: worldSize,
+      tileSize,
+      url: 'asset/image/soil.png',
+      soilLayer: app.layers.soilLayer,
+    });
+
+    // 4. 农场模式下更新 crops 与实体渲染
+    app.cropManager.cropSprites.clear();
+
+    app.characterManager.clear();
+
+    app.characterManager.update(
+      entities,
+      worldSize,
+      tileSize
+    );
+
+
+    console.log("地图已重绘，worldSize =", worldSize);
+  }
+
+
   function exitSnakeMode(app, type) {
     const head = app.snakeGame.model.body[0];
 
@@ -267,7 +328,7 @@ export function initGame() {
     console.log("退出蛇模式: 回写 entity0 =", head.x, head.y);
   }
 
-  function enterSnakeMode(app, tileSize, mapSize) {
+  function enterSnakeMode(app) {
     app.mode = 'snake';
 
     // 1) 清空农场 crop / entity 渲染
@@ -282,7 +343,7 @@ export function initGame() {
     const startY = e0?.y ?? 0;
 
     // 3) 创建 snakeGame，传入初始坐标
-    app.snakeGame = new SnakeGame(app, tileSize, mapSize, {
+    app.snakeGame = new SnakeGame(app, app.state.tileSize, app.state.worldSize, {
       startX,
       startY
     });
@@ -317,7 +378,7 @@ export function initGame() {
 
     // 切换到蛇模式
     if (nextType === 'snake') {
-      enterSnakeMode(app, tileSize, mapSize);
+      enterSnakeMode(app);
       return; // 不继续执行农场逻辑
     }
 
@@ -375,7 +436,10 @@ export function initGame() {
     pendingFrameReqs,
     app,
     msg,
-    changeCharacter
+    changeCharacter,
+    getWorldSize,
+    getTileSize,
+    setWorldSize
   });
 
   function setRunning(v) {
@@ -444,8 +508,8 @@ export function initGame() {
 
     drawMapFrame({
       app,
-      mapSize,
-      tileSize,
+      mapSize: app.state.worldSize,
+      tileSize: app.state.tileSize,
       crops,
       entities
     });

@@ -118,6 +118,18 @@ async function harvest(entityId) {
   );
 }
 
+async function getWorldSize() {
+  return callMain("getWorldSize", [], true);
+}
+
+async function setWorldSize(size) {
+  return callMain("setWorldSize", [size], true);
+}
+
+async function getTileSize() {
+  return callMain("getTileSize", [], true);
+}
+
 // 检查当前格子的作物是否成熟
 async function canHarvest(entityId) {
   const id = _resolveEntityId(entityId);
@@ -267,7 +279,10 @@ function autoAwaitAsyncApi(code) {
     "changeCharacter",
     "change_character",
     "getEntity",
-    "getPosition"
+    "getPosition",
+    "getWorldSize",
+    "setWorldSize",
+    "getTileSize"
   ];
 
   for (const api of apis) {
@@ -311,6 +326,9 @@ async function runUserCode(raw) {
       "change_character",
       "delay",
       "waitFrame",
+      "getWorldSize",
+      "setWorldSize",
+      "getTileSize",
       "setSlowMode",
       `
         return (async () => {
@@ -335,6 +353,9 @@ async function runUserCode(raw) {
       change_character,
       delay,
       waitFrame,
+      getWorldSize,
+      setWorldSize,
+      getTileSize,
       setSlowMode
     );
 

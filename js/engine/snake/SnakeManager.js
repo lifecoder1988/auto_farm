@@ -1,11 +1,10 @@
 // engine/snake/SnakeManager.js
 
 export class SnakeManager {
-    constructor(app, baseRenderer, tileSize, mapSize) {
+    constructor(app, baseRenderer) {
         this.app = app;
         this.baseRenderer = baseRenderer;
-        this.tile = tileSize;
-        this.mapSize = mapSize;
+ 
 
         this.bodyLayer = new PIXI.Container();
         this.foodLayer = new PIXI.Container();
@@ -45,10 +44,10 @@ export class SnakeManager {
         for (const seg of model.body) {
             const g = new PIXI.Graphics();
 
-            const screenY = (this.mapSize - 1 - seg.y) * this.tile;
+            const screenY = (this.app.state.worldSize - 1 - seg.y) * this.app.state.tileSize;
 
             g.beginFill(this.baseRenderer.bodyColor);
-            g.drawRect(seg.x * this.tile, screenY, this.tile, this.tile);
+            g.drawRect(seg.x * this.app.state.tileSize, screenY, this.app.state.tileSize, this.app.state.tileSize);
             g.endFill();
 
             this.bodyLayer.addChild(g);
@@ -58,13 +57,13 @@ export class SnakeManager {
         const f = model.food;
         const fg = new PIXI.Graphics();
 
-        const fy = (this.mapSize - 1 - f.y) * this.tile + this.tile / 2;
+        const fy = (this.app.state.worldSize - 1 - f.y) * this.app.state.tileSize + this.app.state.tileSize / 2;
 
         fg.beginFill(this.baseRenderer.foodColor);
         fg.drawCircle(
-            f.x * this.tile + this.tile / 2,
+            f.x * this.app.state.tileSize + this.app.state.tileSize / 2,
             fy,
-            this.tile / 3
+            this.app.state.tileSize / 3
         );
         fg.endFill();
 

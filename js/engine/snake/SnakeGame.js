@@ -6,15 +6,16 @@ import { SnakeManager } from './SnakeManager.js';
 import { SnakeController } from './SnakeController.js';
 
 export class SnakeGame {
-  constructor(app, tileSize, mapSize, { startX, startY }) {
-    this.model = new Snake(mapSize, startX, startY);
+  constructor(app, { startX, startY }) {
+    this.app = app;
+    this.model = new Snake(this.app.state.worldSize, startX, startY);
     this.controller = new SnakeController(this.model);
-    this.renderer = new SnakeManager(app, new SnakeBase({}), tileSize, mapSize);
+    this.renderer = new SnakeManager(app, new SnakeBase({}), this.app.state.tileSize, this.app.state.worldSize);
 
   }
 
   restart() {
-    this.model = new Snake(this.mapSize);
+    this.model = new Snake(this.app.state.worldSize);
     this.controller = new SnakeController(this.model);
 
     // 渲染对象不需要重建，继续用

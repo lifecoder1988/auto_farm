@@ -1,19 +1,22 @@
 // js/unlock/unlock-pixi.js
-import {
-  computeEligibility, isUnlocked, getTechLevel,
-  canUpgrade, unlockTech, upgradeTech
-} from './unlock-core.js';
 
 let techApp = null;
 
 export function renderUnlockPixi(app, TECH_TREE, graphEl) {
-  const sorted = TECH_TREE.slice().sort((a,b)=> (a.tier||0)-(b.tier||0));
-  const eligible = computeEligibility(app, TECH_TREE);
 
+  const unlockMgr = app.unlockManager;
+
+  // 1. 按 tier 排序
+  const sorted = TECH_TREE.slice().sort((a,b)=> (a.tier||0)-(b.tier||0));
+
+  // 2. 预计算哪些节点“可解锁”
+  const eligible = unlockMgr.computeEligibility();
+
+  // 3. 按层级分组
   const levels = [];
-  sorted.forEach(n => {
-    const t = n.tier || 0;
-    (levels[t] ||= []).push(n);
+  sorted.forEach(node => {
+    const t = node.tier || 0;
+    (levels[t] ||= []).push(node);
   });
 
   const cardW = 360, cardH = 200;
@@ -24,7 +27,7 @@ export function renderUnlockPixi(app, TECH_TREE, graphEl) {
 
   for (let l = 0; l < levels.length; l++) {
     const row = levels[l];
-    if (!row || row.length === 0) continue; 
+    if (!row || row.length === 0) continue;
     const count = row.length;
     const marginX = 20;
     const stepX = (graphW - marginX*2) / (count + 0.8);
@@ -40,7 +43,7 @@ export function renderUnlockPixi(app, TECH_TREE, graphEl) {
   const maxY = Object.values(pos).reduce((m,p)=>Math.max(m,p.y),0);
   const contentH = maxY + cardH + 200;
 
-  // init Pixi
+  // 4. 初始化/更新 Pixi canvas
   if (!techApp) {
     techApp = new PIXI.Application({
       width: graphW,
@@ -56,20 +59,23 @@ export function renderUnlockPixi(app, TECH_TREE, graphEl) {
     techApp.renderer.resize(graphW, contentH);
   }
 
+  // 清空画布
   techApp.stage.removeChildren();
 
   const g = new PIXI.Graphics();
   techApp.stage.addChild(g);
 
-  // 画依赖线
+  // 5. 画依赖线
   for (const node of sorted) {
     const deps = node.deps || [];
     const p2 = pos[node.key];
+
     for (const d of deps) {
       const p1 = pos[d];
       if (!p1) continue;
 
-      const ok = isUnlocked(app, d);
+      const ok = unlockMgr.isUnlocked(d);
+
       const midY = (p1.y + p2.y) / 2;
 
       g.lineStyle(4, ok ? 0x2d6a2d : 0x6a2d2d, 0.95);
@@ -88,12 +94,16 @@ export function renderUnlockPixi(app, TECH_TREE, graphEl) {
     }
   }
 
-  // 节点卡片
+  // 6. 画节点卡片
   for (const node of sorted) {
-    const unlocked = isUnlocked(app, node.key);
-    const lv = getTechLevel(app, node.key);
+
+    const unlocked = unlockMgr.isUnlocked(node.key);
+    const lv = unlockMgr.getLevel(node.key);
     const maxLv = node.maxLevel || 0;
-    const canUp = canUpgrade(app, node);
+
+    const canUnlock = eligible[node.key] && !unlocked;
+    const canUpgrade = unlockMgr.canUpgrade(node.key);
+
     const p = pos[node.key];
 
     const card = new PIXI.Graphics();
@@ -101,36 +111,47 @@ export function renderUnlockPixi(app, TECH_TREE, graphEl) {
     card.beginFill(0x1f1f1f);
     card.drawRoundedRect(p.x - cardW/2, p.y - cardH/2, cardW, cardH, 10);
     card.endFill();
-    card.interactive = (!unlocked && eligible[node.key]) || (unlocked && canUp);
+
+    card.interactive = canUnlock || canUpgrade;
     card.buttonMode = card.interactive;
 
+    // 点击事件：解锁 / 升级
     card.on('pointertap', () => {
-      if (!unlocked) {
-        if (unlockTech(app, node)) renderUnlockPixi(app, TECH_TREE, graphEl);
+      if (canUnlock) {
+        if (unlockMgr.unlock(node.key)) {
+          renderUnlockPixi(app, TECH_TREE, graphEl);
+        }
         return;
       }
-      if (canUp) {
-        if (upgradeTech(app, node)) renderUnlockPixi(app, TECH_TREE, graphEl);
+
+      if (canUpgrade) {
+        if (unlockMgr.upgrade(node.key)) {
+          renderUnlockPixi(app, TECH_TREE, graphEl);
+        }
       }
     });
 
     techApp.stage.addChild(card);
 
+    // 名称
     const nameT = new PIXI.Text(node.name, { fill:'#eee', fontSize:22, fontWeight:'600' });
     nameT.x = p.x - nameT.width/2;
     nameT.y = p.y - cardH/2 + 12;
     techApp.stage.addChild(nameT);
 
-    const statusT = new PIXI.Text(
-      unlocked
-        ? (maxLv ? `Lv.${lv}/${maxLv}` + (lv < maxLv ? (canUp ? ' · 可升级' : '') : '') : '已解锁')
-        : (eligible[node.key] ? '可解锁' : '未解锁'),
-      { fill:'#ccc', fontSize:16 }
-    );
+    // 状态文本
+    const statusText = !unlocked
+      ? (canUnlock ? '可解锁' : '未解锁')
+      : (maxLv
+        ? `Lv.${lv}/${maxLv}` + (lv < maxLv ? (canUpgrade ? ' · 可升级' : '') : '')
+        : '已解锁');
+
+    const statusT = new PIXI.Text(statusText, { fill:'#ccc', fontSize:16 });
     statusT.x = p.x - statusT.width/2;
     statusT.y = p.y - cardH/2 + 60;
     techApp.stage.addChild(statusT);
 
+    // 需要的材料
     const reqStr = Object.entries(node.requires||{}).map(([k,v])=>`${k}×${v}`).join(' · ');
     const reqT = new PIXI.Text(reqStr, { fill:'#ccc', fontSize:16 });
     reqT.x = p.x - reqT.width/2;

@@ -5,16 +5,21 @@ import { drawMapFrame } from './engine/map.js';
 import { handleWorkerCallFactory } from './engine/worker-bridge.js';
 import { cssHexToInt, hslToInt } from './utils/color.js';
 
+import { Inventory } from './engine/inventory/Inventory.js';
+
 import { CharacterManager } from './engine/characters/CharacterManager.js';
+import { EntityManager } from './engine/entities/EntityManager.js';
 
 import { CropManager } from './engine/crops/CropManager.js';
 import { Crop } from './engine/crops/Crop.js';
 
 
-import { initUnlockUI, updateUnlock } from './unlock/unlock-ui.js';
+import { initUnlockUI, updateUnlock } from './engine/unlock/unlock-ui.js';
 
 
 import { SnakeGame } from './engine/snake/SnakeGame.js';
+
+import { UnlockManager } from './engine/unlock/UnlockManager.js';
 import { TECH_TREE } from './data/unlock.js';
 
 export function initGame() {
@@ -56,11 +61,17 @@ export function initGame() {
   const characterManager = new CharacterManager();
   app.characterManager = characterManager;
 
+
+
+
   // Pixi 初始化后
   app.cropManager = new CropManager();
 
+  const entityManager = new EntityManager();
+  entityManager.initDefault();
+  app.entityManager = entityManager;
 
-  initUnlockUI(app, TECH_TREE);
+
 
 
   app.view.id = 'map';
@@ -72,7 +83,26 @@ export function initGame() {
 
   // 全局 state
   app.state = app.state || {};
-  app.state.items = app.state.items || { potato: 1000, peanut: 1000, pumpkin: 1000, straw: 1000 };
+  app.inventory = new Inventory(
+    {
+      potato: 1000,
+      peanut: 1000,
+      pumpkin: 1000,
+      straw: 1000
+    }
+  );
+
+  app.inventory.onChange(() => updateInventory());
+
+
+  app.unlockManager = new UnlockManager({
+    inventory: app.inventory,
+    techLevels: {},
+    unlocks: {},
+    techTree: TECH_TREE
+  });
+
+  initUnlockUI(app, TECH_TREE);
   app.state.techLevels = app.state.techLevels || {};
   app.state.crops = app.state.crops || {};
   app.state.unlocks = app.state.unlocks || {};
@@ -83,10 +113,7 @@ export function initGame() {
 
 
   let crops = app.state.crops;
-  let entities = [
-    { id: 0, x: 0, y: 0, Items: { potato: 0, peanut: 0, pumpkin: 0, straw: 0 }, type: 'drone', hat: 'Straw_Hat' }
-  ];
-  let activeEntityId = 0;
+
 
   // 图层
   const layers = initLayers(app); // 包含 soilLayer, gridLayer, cropsLayer, entitiesLayer
@@ -158,38 +185,18 @@ export function initGame() {
   }
 
   function getTotalItems() {
-    if (app && app.state && app.state.items) {
-      return { ...app.state.items };
-    }
-    const totals = { potato: 0, peanut: 0, pumpkin: 0, straw: 0 };
-    for (const e of entities) {
-      totals.potato += (e.Items.potato || 0);
-      totals.peanut += (e.Items.peanut || 0);
-      totals.pumpkin += (e.Items.pumpkin || 0);
-      totals.straw += (e.Items.straw || 0);
-    }
-    return totals;
+    return entityManager.getTotalItems(app?.state?.items);
   }
 
   function updateInventory() {
-    const totals = getTotalItems();
+    const totals = app.inventory.getAll();
     inv.textContent = `🎒 全局背包: 土豆(${totals.potato}) 花生(${totals.peanut}) 南瓜(${totals.pumpkin}) 稻草(${totals.straw || 0})`;
     // 这里原来还会更新科技树 UI：updateTechTree()
   }
 
   // move / plant / harvest / spawn / despawn 保留在 game.js 里
   function move(direction, id) {
-    const e = getEntity(id);
-    switch (direction) {
-      case 'up': e.y++; break;
-      case 'down': e.y--; break;
-      case 'left': e.x--; break;
-      case 'right': e.x++; break;
-      default: throw new Error('未知方向: ' + direction);
-    }
-    const wrap = (v) => ((v % app.state.worldSize) + app.state.worldSize) % app.state.worldSize;
-    e.x = wrap(e.x);
-    e.y = wrap(e.y);
+    entityManager.move(direction, app.state.worldSize, id);
   }
 
   function plant(type, id) {
@@ -224,38 +231,32 @@ export function initGame() {
     const e = getEntity(id);
     const key = `${e.x}_${e.y}`;
     const crop = crops[key];
-    if (!crop) { return; }
-    const elapsed = Date.now() - crop.plantedAt;
-    if (elapsed < crop.matureTime) { return; }
-    const itemKey = cropTypes[crop.type].item;
-    const levels = (app && app.state && app.state.techLevels) ? app.state.techLevels : {};
-    const pumpkinLvl = Number(levels['pumpkin'] || 0);
-    const yieldQty = (itemKey === 'pumpkin') ? (1 + pumpkinLvl) : 1;
-    e.Items[itemKey] = (e.Items[itemKey] || 0) + yieldQty;
-    if (app && app.state && app.state.items && itemKey in app.state.items) {
-      app.state.items[itemKey] = (app.state.items[itemKey] || 0) + yieldQty;
-    }
-    delete crops[key];
+    if (!crop) return;
 
-    updateInventory();
+    const elapsed = Date.now() - crop.plantedAt;
+    if (elapsed < crop.matureTime) return;
+
+    const itemKey = cropTypes[crop.type].item;
+
+    const levels = app?.state?.techLevels || {};
+    const pumpkinLvl = Number(levels['pumpkin'] || 0);
+    const qty = (itemKey === 'pumpkin') ? (1 + pumpkinLvl) : 1;
+
+    // ⭐ 全局背包管理
+    app.inventory.add(itemKey, qty);
+
+    delete crops[key];
   }
 
   function spawn() {
-    const newId = entities.length ? Math.max(...entities.map(x => x.id)) + 1 : 0;
-    const ref = getEntity(activeEntityId);
-    entities.push({ id: newId, x: ref.x, y: ref.y, type: ref.type, Items: { potato: 0, peanut: 0, pumpkin: 0, straw: 0 }, hat: 'Straw_Hat' });
-
-    return newId;
+    const ent = entityManager.spawn(entityManager.activeId);
+    return ent.id;
   }
 
   function setActive(id) {
-    const found = entities.find(e => e.id === id);
-    if (found) {
-      activeEntityId = id;
-
+    const ok = entityManager.setActive(id);
+    if (ok) {
       updateInventory();
-    } else {
-
     }
   }
 
@@ -293,7 +294,7 @@ export function initGame() {
     app.characterManager.clear();
 
     app.characterManager.update(
-      entities,
+      entityManager.getAll(),
       worldSize,
       tileSize
     );
@@ -303,29 +304,27 @@ export function initGame() {
   }
 
 
-  function exitSnakeMode(app, type) {
+  function exitSnakeMode(app, type = 'drone') {
     const head = app.snakeGame.model.body[0];
 
-    const e0 = entities.find(e => e.id === 0);
-    if (e0) {
+    const e0 = entityManager.getById(0) || entityManager.getActive();
+    if (e0 && head) {
       e0.x = head.x;
       e0.y = head.y;
-      e0.type = type; // 或 dino，随你
+      e0.type = type; // 或 dino
     }
 
     if (app.snakeGame && app.snakeGame.renderer) {
-      app.snakeGame.renderer.destroy();  // ⭐ 必须销毁
+      app.snakeGame.renderer.destroy();
     }
 
-    // 恢复农场模式
     app.mode = 'farm';
     app.snakeGame = null;
 
-    // 让农场重新渲染
     app.layers.cropsLayer.removeChildren();
     app.layers.entitiesLayer.removeChildren();
 
-    console.log("退出蛇模式: 回写 entity0 =", head.x, head.y);
+    console.log("退出蛇模式: 回写 entity0 =", head?.x, head?.y);
   }
 
   function enterSnakeMode(app) {
@@ -338,7 +337,7 @@ export function initGame() {
     app.layers.entitiesLayer.removeChildren();
 
     // 2) 取 entity0 的位置 → 作为蛇头初始位置
-    const e0 = entities.find(e => e.id === 0);
+    const e0 = entityManager.getById(0) || entityManager.getActive();
     const startX = e0?.x ?? 0;
     const startY = e0?.y ?? 0;
 
@@ -351,6 +350,22 @@ export function initGame() {
     console.log("进入蛇模式: 蛇头初始坐标 =", startX, startY);
   }
 
+
+  function getEntity(id) {
+    return entityManager.getEntity(id);
+  }
+
+  function getEntities() {
+    return entityManager.getAll();
+  }
+
+  function getActiveEntityId() {
+    return entityManager.activeId;
+  }
+
+  function setActiveEntityId(id) {
+    entityManager.setActive(id);
+  }
 
   // 切换角色类型（例如 'drone' 或 'dino'）
   function changeCharacter(typeKey, id) {
@@ -395,34 +410,23 @@ export function initGame() {
   }
 
   function despawn(id) {
-    const idx = entities.findIndex(e => e.id === id);
-    if (idx >= 0) {
-      const removed = entities[idx];
-      entities.splice(idx, 1);
-      if (entities.length === 0) {
-        entities = [
-          { id: 0, x: 0, y: 0, Items: { potato: 0, peanut: 0, pumpkin: 0, straw: 0 }, type: 'drone', hat: 'Straw_Hat' }
-        ];
-      }
-      if (activeEntityId === removed.id) {
-        activeEntityId = entities[0].id;
-      }
-
-      updateInventory();
-    }
+    entityManager.despawn(id);
+    updateInventory();
   }
 
   function reset() {
-    entities = [
-      { id: 0, x: 0, y: 0, Items: { potato: 0, peanut: 0, pumpkin: 0, straw: 0 }, type: 'drone', hat: 'Straw_Hat' }
-    ];
-    activeEntityId = 0;
+    entityManager.reset();
     if (app && app.state) {
       app.state.crops = {};
       app.state.unlocks = {};
       app.state.techLevels = {};
       crops = app.state.crops;
-      app.state.items = { potato: 1000, peanut: 1000, pumpkin: 1000, straw: 1000 };
+      app.inventory.reset({
+        potato: 1000,
+        peanut: 1000,
+        pumpkin: 1000,
+        straw: 1000
+      });
     }
     msg.textContent = '已重置 ⟳';
     updateInventory();
@@ -430,9 +434,15 @@ export function initGame() {
 
   // Worker call handler（抽成一个工厂函数）
   const handleWorkerCall = handleWorkerCallFactory({
-    move, plant, harvest, canHarvest, spawn, despawn, setActive,
+    move,
+    plant,
+    harvest,
+    canHarvest,
+    spawn,
+    despawn,
+    setActive,
     getEntity: (id) => ({ ...getEntity(id) }),
-    getPlayer: () => ({ ...getEntity(activeEntityId) }),
+    getPlayer: () => ({ ...entityManager.getActive() }),
     pendingFrameReqs,
     app,
     msg,
@@ -441,6 +451,7 @@ export function initGame() {
     getTileSize,
     setWorldSize
   });
+
 
   function setRunning(v) {
     isRunning = v;
@@ -511,7 +522,7 @@ export function initGame() {
       mapSize: app.state.worldSize,
       tileSize: app.state.tileSize,
       crops,
-      entities
+      entities: entityManager.getAll()
     });
 
     // 处理 waitFrame

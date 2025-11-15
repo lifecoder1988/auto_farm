@@ -8,33 +8,62 @@ import { SnakeController } from './SnakeController.js';
 export class SnakeGame {
   constructor(app, { startX, startY }) {
     this.app = app;
-    this.model = new Snake(this.app.state.worldSize, startX, startY);
-    this.controller = new SnakeController(this.model);
-    this.renderer = new SnakeManager(app, new SnakeBase({}), this.app.state.tileSize, this.app.state.worldSize);
 
+    const worldSize = app.gameState.worldSize;
+    const tileSize = app.gameState.tileSize;
+
+    this.startX = startX ?? 0;
+    this.startY = startY ?? 0;
+
+    // 1. model（蛇的身体数据）
+    this.model = new Snake(worldSize, this.startX, this.startY);
+
+    // 2. controller（逻辑控制：移动、判死、吃苹果…）
+    this.controller = new SnakeController(this.model);
+
+    // 3. renderer（画蛇）
+    this.renderer = new SnakeManager(
+      app,
+      new SnakeBase({}),
+      tileSize,
+      worldSize
+    );
   }
 
+  /** 当蛇死亡时自动重开 */
   restart() {
-    this.model = new Snake(this.app.state.worldSize);
+    const worldSize = this.app.gameState.worldSize;
+
+    this.model = new Snake(worldSize, this.startX, this.startY);
     this.controller = new SnakeController(this.model);
+  }
 
-    // 渲染对象不需要重建，继续用
-    }
-
-  /** move(dir) 直接控制蛇一步 */
+  /** step(dir): 每次玩家 move 调用一次 */
   step(dir) {
     const alive = this.controller.step(dir);
 
     if (!alive) {
-        // 可选：提示
-        console.warn("Snake died! Restarting...");
-
-        this.restart();   // 🚨 自动重开一局
+      console.warn("Snake died! Restarting...");
+      this.restart();
     }
   }
 
   /** 每帧渲染 */
   render() {
+    const worldSize = this.app.gameState.worldSize;
+    const tileSize = this.app.gameState.tileSize;
+
+    // 如果世界大小变化（setWorldSize），renderer 要更新
+    if (this.renderer.worldSize !== worldSize ||
+        this.renderer.tileSize !== tileSize) {
+
+      this.renderer.worldSize = worldSize;
+      this.renderer.tileSize = tileSize;
+
+      // 可以选择清空一下让渲染更干净
+      if (this.renderer.clear) this.renderer.clear();
+    }
+
     this.renderer.draw(this.model);
   }
 }

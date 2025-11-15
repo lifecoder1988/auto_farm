@@ -22,109 +22,138 @@ export function handleWorkerCallFactory(ctx) {
       }
     }
 
-    if (app.mode === 'snake') {
+    // ==========================
+    // ⭐ Snake 模式下特殊处理
+    // ==========================
+    if (app.gameState.mode === 'snake') {
       if (name === 'move') {
         app.snakeGame.step(args[0]);
         respond(true);
         return;
       }
+      // 其它指令在 snake 模式下无效
       respond(null);
+      return;
     }
 
+    // ==========================
+    // ⭐ 农场模式：主指令分发
+    // ==========================
     switch (name) {
+
       case 'move': {
         move(args[0], args[1]);
-        const e = getEntity(args && args[1] != null ? args[1] : undefined);
+        const e = getEntity(args?.[1]);
         respond({ id: e.id, x: e.x, y: e.y });
         return;
       }
+
       case 'plant': {
         plant(args[0], args[1]);
         respond(true);
         return;
       }
+
       case 'harvest': {
         harvest(args[0]);
         respond(true);
         return;
       }
+
       case 'canHarvest': {
-        const id = args && args[0];
-        const r = canHarvest(id);
-        respond(!!r);
+        respond(!!canHarvest(args?.[0]));
         return;
       }
+
       case 'spawn': {
         const id = spawn();
         respond(id);
         return;
       }
+
       case 'despawn': {
-        despawn(args[0]);
+        despawn(args?.[0]);
         respond(true);
         return;
       }
+
       case 'setActive': {
-        setActive(args[0]);
+        setActive(args?.[0]);
         respond(true);
         return;
       }
+
       case 'getPlayer': {
         respond(getPlayer());
         return;
       }
+
       case 'getEntity': {
-        const e = getEntity(args && args[0]);
-        respond(e);
+        respond(getEntity(args?.[0]));
         return;
       }
+
+      // ==========================
+      // ⭐ 帧等待：worker 等一帧
+      // ==========================
       case 'waitFrame': {
         if (reqId != null) pendingFrameReqs.push(reqId);
         return;
       }
+
+      // ==========================
+      // ⭐ 换帽子
+      // ==========================
       case 'change_hat':
       case 'changeHat': {
-        const hatKey = args && args[0];
-        const id = args && args[1];
+        const hatKey = args?.[0];
+        const id = args?.[1];
         const e = getEntity(id);
-        e.hat = typeof hatKey === 'string' ? hatKey : 'Straw_Hat';
+        if (e) e.hat = typeof hatKey === 'string' ? hatKey : 'Straw_Hat';
         respond(true);
         return;
       }
+
+      // ==========================
+      // ⭐ 换角色：drone/dino/snake
+      // ==========================
       case 'change_character':
       case 'changeCharacter': {
-        const typeKey = args && args[0];
-        const id = args && args[1];
-
-        changeCharacter(typeKey, id);
-
+        changeCharacter(args?.[0], args?.[1]);
         respond(true);
         return;
       }
 
+      // ==========================
+      // ⭐ do a flip
+      // ==========================
       case 'doAFlip':
       case 'do_a_flip': {
-        const id = args && args[0];
-        const e = getEntity(id);
-        e.flashUntil = Date.now() + 1000;
+        const e = getEntity(args?.[0]);
+        if (e) e.flashUntil = Date.now() + 1000;
         respond(true);
         return;
       }
+
+      // ==========================
+      // ⭐ 科技：是否已解锁
+      // ==========================
       case 'isUnlocked': {
-        const key = args && args[0];
-        const unlocked = (app && app.state && app.state.unlocks) ? app.state.unlocks : {};
-        respond(!!unlocked[key]);
+        const key = args?.[0];
+        respond(app.unlockManager.isUnlocked(key));
         return;
       }
 
+      // ==========================
+      // ⭐ 世界尺寸 / tileSize
+      // ==========================
       case 'getWorldSize': {
         respond(getWorldSize());
         return;
       }
 
       case 'setWorldSize': {
-        const newSize = args && args[0];
-        setWorldSize(newSize);
+        setWorldSize(args?.[0]);
         respond(true);
         return;
       }
@@ -133,6 +162,7 @@ export function handleWorkerCallFactory(ctx) {
         respond(getTileSize());
         return;
       }
+
       default:
         respond(null);
     }

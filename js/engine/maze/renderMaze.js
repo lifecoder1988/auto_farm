@@ -4,11 +4,10 @@ export function renderAllMazes(app) {
 
   const mazes = app.mazeManager.getAll();
 
-  const wallTexture = app.mazeTextures.wall;
-  const treasureTexture = app.mazeTextures.treasure;
+  const { wall, treasure } = app.mazeManager.getTextures();
 
   for (const maze of mazes) {
-    drawOneMaze(app, maze, layer, wallTexture, treasureTexture);
+    drawOneMaze(app, maze, layer, wall, treasure);
   }
 }
 
@@ -17,75 +16,66 @@ export function drawOneMaze(app, maze, layer, wallTexture, treasureTexture) {
   const tileSize = app.gameState.world.tileSize;
   const worldSize = app.gameState.world.size;
 
-  // 渲染墙体
   for (let y = 0; y < maze.size; y++) {
     for (let x = 0; x < maze.size; x++) {
-      const cell = maze.grid[y][x];  // 使用迷宫网格
+      const cell = maze.grid[y][x];
       const gx = maze.startX + x;
       const gy = maze.startY + y;
 
       const px = gx * tileSize;
       const py = (worldSize - 1 - gy) * tileSize;
 
-      // 上墙
+      // ⬜ 如果有上墙 → 放一个方块障碍物
       if (cell.walls.up) {
-        const s = new PIXI.Sprite(wallTexture);
-        s.width = tileSize;
-        s.height = tileSize / 4;
-        s.x = px;
-        s.y = py;
-        layer.addChild(s);
+        const sprite = new PIXI.Sprite(wallTexture);
+        sprite.width = tileSize;
+        sprite.height = tileSize;
+        sprite.x = px;
+        sprite.y = py;
+        layer.addChild(sprite);
       }
 
-      // 下墙
+      // ⬜ 下墙
       if (cell.walls.down) {
-        const s = new PIXI.Sprite(wallTexture);
-        s.width = tileSize;
-        s.height = tileSize / 4;
-        s.x = px;
-        s.y = py + tileSize;
-        s.rotation = Math.PI;
-        layer.addChild(s);
+        const sprite = new PIXI.Sprite(wallTexture);
+        sprite.width = tileSize;
+        sprite.height = tileSize;
+        sprite.x = px;
+        sprite.y = py + tileSize;
+        layer.addChild(sprite);
       }
 
-      // 左墙
+      // ⬜ 左墙
       if (cell.walls.left) {
-        const s = new PIXI.Sprite(wallTexture);
-        s.width = tileSize;
-        s.height = tileSize / 4;
-        s.anchor.set(0, 1);
-        s.rotation = -Math.PI / 2;
-        s.x = px;
-        s.y = py + tileSize;
-        layer.addChild(s);
+        const sprite = new PIXI.Sprite(wallTexture);
+        sprite.width = tileSize;
+        sprite.height = tileSize;
+        sprite.x = px;
+        sprite.y = py;
+        layer.addChild(sprite);
       }
 
-      // 右墙
+      // ⬜ 右墙
       if (cell.walls.right) {
-        const s = new PIXI.Sprite(wallTexture);
-        s.width = tileSize;
-        s.height = tileSize / 4;
-        s.anchor.set(1, 0);
-        s.rotation = Math.PI / 2;
-        s.x = px + tileSize;
-        s.y = py;
-        layer.addChild(s);
+        const sprite = new PIXI.Sprite(wallTexture);
+        sprite.width = tileSize;
+        sprite.height = tileSize;
+        sprite.x = px + tileSize;
+        sprite.y = py;
+        layer.addChild(sprite);
       }
     }
   }
 
-  // 渲染宝藏
+  // ⭐ 渲染宝藏
   const t = maze.getTreasureGlobal();
-  const tx = t.x * tileSize;
-  const ty = (worldSize - 1 - t.y) * tileSize;
-
   const treasure = new PIXI.Sprite(treasureTexture);
   treasure.width = tileSize;
   treasure.height = tileSize;
-  treasure.x = tx;
-  treasure.y = ty;
-
+  treasure.x = t.x * tileSize;
+  treasure.y = (worldSize - 1 - t.y) * tileSize;
   layer.addChild(treasure);
 }
+
 
 

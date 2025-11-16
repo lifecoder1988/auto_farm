@@ -51,10 +51,7 @@ export function initGame() {
     antialias: true
   });
 
-  app.mazeTextures = {
-    wallTexture: PIXI.Texture.from('asset/image/wall.png'),
-    treasureTexture: PIXI.Texture.from('asset/image/treasure.png'),
-  };
+ 
 
   const cropTypes = {
     '土豆': { time: 3000, item: 'potato' },
@@ -153,12 +150,23 @@ export function initGame() {
   }
 
 
-  function createMaze(x, y, size) {
-    const maze = new Maze({ startX: x, startY: y, size });
-    app.mazeManager.addMaze(maze);
+  function createMaze(size, id) {
+    const e = entityManager.getEntity(id);
+    if (!e) return;
 
-    renderAllMazes(app);   // ⬅ 只在创建迷宫时绘制
+    const worldSize = app.gameState.world.size;
+
+    const maze = new Maze({
+      startX: e.x,
+      startY: e.y,
+      size,
+      worldSize
+    });
+
+    app.mazeManager.addMaze(maze);
+    renderAllMazes(app);   // 只画一次
   }
+
 
   function getWorldSize() {
     return app.gameState.world.size;
@@ -400,7 +408,8 @@ export function initGame() {
     changeCharacter,
     getWorldSize,
     getTileSize,
-    setWorldSize
+    setWorldSize,
+    createMaze
   });
 
   // =======================

@@ -75,7 +75,7 @@ const userConsole = {
         })
       );
       send({ type: "log", args: resolved });
-    } catch (_) {}
+    } catch (_) { }
   },
 };
 
@@ -86,6 +86,17 @@ function _resolveEntityId(entityId) {
   // 在 spawn 内部已通过 ctx 的 move/plant/harvest 等显式传入 id。
   if (entityId !== undefined) return entityId;
   return undefined;
+}
+
+
+async function createMaze(size, entityId) {
+  const id = _resolveEntityId(entityId);
+  const key = id !== undefined ? `E:${id}` : GLOBAL_CHAIN_KEY;
+  return withSlow(
+    () => callMain("createMaze", [size, id], true),
+    1,
+    key
+  );
 }
 
 async function move(direction, entityId) {
@@ -201,6 +212,7 @@ async function spawn(fn, ...userArgs) {
       canHarvest: () => canHarvest(id),
       getEntity: () => callMain("getEntity", [id], true),
       delay,
+      createMaze: (n) => createMaze(n, id),
     };
 
     try {
@@ -282,7 +294,9 @@ function autoAwaitAsyncApi(code) {
     "getPosition",
     "getWorldSize",
     "setWorldSize",
-    "getTileSize"
+    "getTileSize",
+    "setSlowMode",
+    "createMaze"
   ];
 
   for (const api of apis) {
@@ -330,6 +344,7 @@ async function runUserCode(raw) {
       "setWorldSize",
       "getTileSize",
       "setSlowMode",
+      "createMaze",
       `
         return (async () => {
           ${code}
@@ -356,7 +371,8 @@ async function runUserCode(raw) {
       getWorldSize,
       setWorldSize,
       getTileSize,
-      setSlowMode
+      setSlowMode,
+      createMaze
     );
 
     send({ type: "complete" });

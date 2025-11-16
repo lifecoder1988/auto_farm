@@ -10,7 +10,8 @@ export function handleWorkerCallFactory(ctx) {
     setWorldSize,
     changeCharacter,
     app,
-    msg
+    msg,
+    createMaze
   } = ctx;
 
   return function handleWorkerCall(data, worker) {
@@ -160,6 +161,13 @@ export function handleWorkerCallFactory(ctx) {
 
       case 'getTileSize': {
         respond(getTileSize());
+        return;
+      }
+      case 'createMaze': {
+        const size = args && args[0];
+        const entityId = args && args[1];   // 脚本上下文里的 entity id
+        createMaze(size, entityId);
+        respond(true);
         return;
       }
 

@@ -18,6 +18,10 @@ import { TECH_TREE } from './data/unlock.js';
 
 import { SnakeGame } from './engine/snake/SnakeGame.js';
 
+import { Maze } from './engine/maze/Maze.js';
+import { MazeManager } from './engine/maze/MazeManager.js';
+import { renderAllMazes } from './engine/maze/renderMaze.js';
+
 export function initGame() {
   const msg = document.getElementById('msg');
   const inv = document.getElementById('inventory');
@@ -46,6 +50,11 @@ export function initGame() {
     backgroundAlpha: 0,
     antialias: true
   });
+
+  app.mazeTextures = {
+    wallTexture: PIXI.Texture.from('asset/image/wall.png'),
+    treasureTexture: PIXI.Texture.from('asset/image/treasure.png'),
+  };
 
   const cropTypes = {
     '土豆': { time: 3000, item: 'potato' },
@@ -95,6 +104,8 @@ export function initGame() {
     techTree: TECH_TREE
   });
 
+  app.mazeManager = new MazeManager(app);
+
   // 初始化科技 UI
   initUnlockUI(app, TECH_TREE);
 
@@ -139,6 +150,14 @@ export function initGame() {
         gridLayer.drawRect(x * tile, y * tile, tile, tile);
       }
     }
+  }
+
+
+  function createMaze(x, y, size) {
+    const maze = new Maze({ startX: x, startY: y, size });
+    app.mazeManager.addMaze(maze);
+
+    renderAllMazes(app);   // ⬅ 只在创建迷宫时绘制
   }
 
   function getWorldSize() {

@@ -78,6 +78,23 @@ export class MazeManager {
         return false;
     }
 
+    /** 判断一个全局坐标是否在任何迷宫内部 */
+    isInMaze(x, y) {
+        for (const maze of this.mazes) {
+            const mx1 = maze.startX;
+            const my1 = maze.startY;
+            const mx2 = maze.startX + maze.size - 1;
+            const my2 = maze.startY + maze.size - 1;
+
+            if (x >= mx1 && x <= mx2 && y >= my1 && y <= my2) {
+                return maze; // 返回该迷宫
+            }
+        }
+
+        return null; // 不在任何迷宫中
+    }
+
+
     getTextures() {
         return this.textures;   // ⭐ 返回 horizontal / vertical / treasure
     }

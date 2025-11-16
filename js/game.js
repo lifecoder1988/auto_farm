@@ -192,7 +192,13 @@ export function initGame() {
   // 农场逻辑：move / plant / harvest / spawn / despawn
   // =======================
   function move(direction, id) {
-    entityManager.move(direction, getWorldSize(), id);
+    const e = entityManager.getEntity(id);
+    if (!e) return;
+
+    const maze = app.mazeManager.isInMaze(e.x, e.y);
+    if (maze && !maze.canMove(e.x, e.y, direction)) return false; // 不能移动
+
+    return entityManager.move(direction, getWorldSize(), id);
   }
 
   function plant(type, id) {

@@ -15,63 +15,59 @@ export class Maze {
                 };
             }
         }
+
+        this.treasure = null;
+        this.reward = 0;   // ⭐ 宝藏奖励
     }
 
-    /** 判断从全局坐标 (gx, gy) 朝 direction 是否能移动 */
+    /** 从全局坐标 (gx, gy) 朝 direction 是否能移动 */
     canMove(gx, gy, direction) {
         const size = this.size;
 
-        // 判断是否在迷宫范围内
+        // 不在迷宫内 → 不受限制
         if (
             gx < this.startX ||
             gy < this.startY ||
             gx >= this.startX + size ||
             gy >= this.startY + size
         ) {
-            // 不在迷宫内 → 不属于迷宫控制范围 → 可以移动
             return true;
         }
 
-        // 转换为迷宫内部坐标
         const lx = gx - this.startX;
         const ly = gy - this.startY;
 
         const cell = this.grid[ly][lx];
-        if (!cell) return true;  // 理论不会发生
+        if (!cell) return true;
 
-        // 根据方向判断墙
         switch (direction) {
             case "up":
             case "Up":
             case "north":
                 return !cell.walls.up;
-
             case "down":
             case "Down":
             case "south":
                 return !cell.walls.down;
-
             case "left":
             case "Left":
             case "west":
                 return !cell.walls.left;
-
             case "right":
             case "Right":
             case "east":
                 return !cell.walls.right;
-
-            default:
-                return true;
         }
+        return true;
     }
+
 
     /** 生成迷宫（DFS），返回是否成功 */
     generate(px, py) {
         const size = this.size;
         const g = this.grid;
 
-        // ⭐ 关键：清空 visited（再次生成时需要）
+        // reset
         for (let y = 0; y < size; y++) {
             for (let x = 0; x < size; x++) {
                 g[y][x].visited = false;
@@ -79,13 +75,16 @@ export class Maze {
             }
         }
 
-        // ⭐ 转换为本地坐标
         const sx = px - this.startX;
         const sy = py - this.startY;
 
         if (sx < 0 || sy < 0 || sx >= size || sy >= size) {
             return false;
         }
+
+        // 记录入口（用于宝藏禁止落点）
+        this.entryX = sx;
+        this.entryY = sy;
 
         const stack = [];
         g[sy][sx].visited = true;
@@ -108,7 +107,6 @@ export class Maze {
                 const ny = y + d.dy;
 
                 if (nx < 0 || ny < 0 || nx >= size || ny >= size) continue;
-
                 if (!g[ny][nx].visited) {
                     neighbors.push({ nx, ny, d });
                 }
@@ -120,7 +118,6 @@ export class Maze {
                 const { nx, ny, d } =
                     neighbors[Math.floor(Math.random() * neighbors.length)];
 
-                // 打开墙
                 g[y][x].walls[d.wallA] = false;
                 g[ny][nx].walls[d.wallB] = false;
 
@@ -129,8 +126,11 @@ export class Maze {
             }
         }
 
-        // ⭐ 选择宝藏
+        // ⭐ 选择宝藏位置
         this._chooseTreasure();
+
+        // ⭐ 生成奖励
+        this._generateTreasureReward();
 
         return true;
     }
@@ -141,19 +141,18 @@ export class Maze {
 
         for (let y = 0; y < size; y++) {
             for (let x = 0; x < size; x++) {
+
                 // 入口点禁止
                 if (x === this.entryX && y === this.entryY) continue;
 
                 const w = this.grid[y][x].walls;
 
-                // 至少有一个方向能进入
                 if (!(w.up && w.down && w.left && w.right)) {
                     list.push({ x, y });
                 }
             }
         }
 
-        // 保底规则
         if (list.length === 0) {
             this.treasure = { x: size - 1, y: size - 1 };
         } else {
@@ -161,10 +160,21 @@ export class Maze {
         }
     }
 
+    /** ⭐ 随机宝藏奖励（500–1000） */
+    _generateTreasureReward() {
+        this.reward = Math.floor(500 + Math.random() * 501);
+    }
+
+    /** 返回全局奖励坐标 */
     getTreasureGlobal() {
         return {
             x: this.startX + this.treasure.x,
             y: this.startY + this.treasure.y,
         };
+    }
+
+    /** 获取奖励数值 */
+    getTreasureReward() {
+        return this.reward;
     }
 }

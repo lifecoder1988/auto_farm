@@ -51,7 +51,7 @@ export function initGame() {
     antialias: true
   });
 
- 
+
 
   const cropTypes = {
     '土豆': { time: 3000, item: 'potato' },
@@ -78,7 +78,8 @@ export function initGame() {
     potato: 1000,
     peanut: 1000,
     pumpkin: 1000,
-    straw: 1000
+    straw: 1000,
+    gold:0,
   });
   app.inventory.onChange(() => updateInventory());
 
@@ -154,9 +155,9 @@ export function initGame() {
     const e = entityManager.getEntity(id);
     if (!e) return;
 
-   
 
-    app.mazeManager.createMaze(e.x,e.y,size);
+
+    app.mazeManager.createMaze(e.x, e.y, size);
     renderAllMazes(app);   // 只画一次
   }
 
@@ -184,8 +185,9 @@ export function initGame() {
 
   function updateInventory() {
     const t = app.inventory.getAll();
+    console.log(t)
     inv.textContent =
-      `🎒 背包: 土豆(${t.potato}) 花生(${t.peanut}) 南瓜(${t.pumpkin}) 稻草(${t.straw})`;
+      `🎒 背包: 土豆(${t.potato}) 花生(${t.peanut}) 南瓜(${t.pumpkin}) 稻草(${t.straw}) 金币(${t.gold})`;
   }
 
   // =======================
@@ -196,7 +198,26 @@ export function initGame() {
     if (!e) return;
 
     const maze = app.mazeManager.isInMaze(e.x, e.y);
-    if (maze && !maze.canMove(e.x, e.y, direction)) return false; // 不能移动
+    if (maze) {
+
+      if(!maze.canMove(e.x, e.y, direction)) return false;
+
+      entityManager.move(direction, getWorldSize(), id)
+
+      const treasure = maze.getTreasureGlobal();
+      if (treasure.x === e.x && treasure.y === e.y) {
+
+        const reward = maze.getTreasureReward();
+        app.inventory.add('gold', reward);
+     
+
+        app.mazeManager.deleteMaze(maze);
+        renderAllMazes(app);
+
+        console.log("宝藏已收集，迷宫删除，奖励:", reward);
+      } 
+      return 
+    }
 
     return entityManager.move(direction, getWorldSize(), id);
   }

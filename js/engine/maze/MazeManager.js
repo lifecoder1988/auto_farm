@@ -11,6 +11,13 @@ export class MazeManager {
         return this.mazes;
     }
 
+
+    deleteMaze(maze) {
+        const idx = this.mazes.indexOf(maze);
+        if (idx !== -1) {
+            this.mazes.splice(idx, 1);
+        }
+    }
     overlapExists(sx, sy, n) {
         for (const m of this.mazes) {
             const ax1 = m.startX;

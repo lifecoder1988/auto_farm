@@ -154,16 +154,9 @@ export function initGame() {
     const e = entityManager.getEntity(id);
     if (!e) return;
 
-    const worldSize = app.gameState.world.size;
+   
 
-    const maze = new Maze({
-      startX: e.x,
-      startY: e.y,
-      size,
-      worldSize
-    });
-
-    app.mazeManager.addMaze(maze);
+    app.mazeManager.createMaze(e.x,e.y,size);
     renderAllMazes(app);   // 只画一次
   }
 

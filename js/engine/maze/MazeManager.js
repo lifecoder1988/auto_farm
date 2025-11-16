@@ -1,40 +1,121 @@
+import { Maze } from "./Maze.js";
+
 export class MazeManager {
     constructor(app) {
         this.app = app;
         this.mazes = [];
-        this.textures = {
-            wall: PIXI.Texture.from('asset/image/wall.png'),
-            treasure: PIXI.Texture.from('asset/image/treasure.png'),
-        };
+        this.textures = this._loadTextures();
+    }
+
+    getAll() {
+        return this.mazes;
+    }
+
+    overlapExists(sx, sy, n) {
+        for (const m of this.mazes) {
+            const ax1 = m.startX;
+            const ay1 = m.startY;
+            const ax2 = m.startX + m.size - 1;
+            const ay2 = m.startY + m.size - 1;
+
+            const bx1 = sx;
+            const by1 = sy;
+            const bx2 = sx + n - 1;
+            const by2 = sy + n - 1;
+
+            const overlap =
+                !(bx2 < ax1 || bx1 > ax2 || by2 < ay1 || by1 > ay2);
+
+            if (overlap) return true;
+        }
+        return false;
+    }
+
+    /** 尝试创建迷宫，成功返回 Maze 对象，否则返回 false */
+    createMaze(globalX, globalY, n) {
+        const size = this.app.gameState.world.size;
+
+        const px = globalX;
+        const py = globalY;
+
+        const d = n - 1;
+
+        const candidates = [
+            { sx: px, sy: py },
+            { sx: px - d, sy: py },
+            { sx: px, sy: py - d },
+            { sx: px - d, sy: py - d }
+        ];
+
+        for (const { sx, sy } of candidates) {
+            // 越界检查
+            if (sx < 0 || sy < 0) continue;
+            if (sx + n > size || sy + n > size) continue;
+
+            // 重叠检查
+            if (this.overlapExists(sx, sy, n)) continue;
+
+            // 创建迷宫
+            const maze = new Maze({ startX: sx, startY: sy, size: n });
+
+            const ok = maze.generate(px, py);
+            if (!ok) continue;
+
+            this.mazes.push(maze);
+
+            // 清空迷宫范围内农作物
+            const crops = this.app.gameState.crops;
+            for (let y = sy; y < sy + n; y++) {
+                for (let x = sx; x < sx + n; x++) {
+                    const key = `${x}_${y}`;
+                    delete crops[key];
+                }
+            }
+            console.log(maze)
+            return maze;
+        }
+
+        return false;
     }
 
     getTextures() {
-        return this.textures;
-    }
-    addMaze(maze) {
-        this.mazes.push(maze);
-        this._deleteCropsInside(maze);
+        return this.textures;   // ⭐ 返回 horizontal / vertical / treasure
     }
 
-    _deleteCropsInside(maze) {
-        const crops = this.app.gameState.crops;
+    _loadTextures() {
+        // 加载整张图
+        const wallTex = PIXI.Texture.from("asset/image/wall.png");
+        const treasureTex = PIXI.Texture.from("asset/image/treasure.png");
 
-        for (let y = 0; y < maze.size; y++) {
-            for (let x = 0; x < maze.size; x++) {
-                const gx = maze.startX + x;
-                const gy = maze.startY + y;
-                const key = `${gx}_${gy}`;
+        const textures = {
+            horizontal: null,
+            vertical: null,
+            treasure: treasureTex
+        };
 
-                if (crops[key]) {
-                    delete crops[key]; // ⭐彻底删除 crop
-                }
-            }
-        }
+        // ⭐ 必须等待 wallTex 加载完再切帧
+        wallTex.baseTexture.on('loaded', () => {
+
+            const w = wallTex.baseTexture.width;
+            const h = wallTex.baseTexture.height;
+            const fw = w / 2;
+
+            // 左半：横墙
+            textures.horizontal = new PIXI.Texture(
+                wallTex.baseTexture,
+                new PIXI.Rectangle(0, 0, fw, h)
+            );
+
+            // 右半：竖墙
+            textures.vertical = new PIXI.Texture(
+                wallTex.baseTexture,
+                new PIXI.Rectangle(fw, 0, fw, h)
+            );
+
+            console.log("Maze textures loaded:", textures);
+        });
+
+        return textures;
     }
 
-    getAll() { return this.mazes; }
-
-    clear() {
-        this.mazes = [];
-    }
 }

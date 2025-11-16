@@ -4,11 +4,31 @@ import { Snake } from './Snake.js';
 import { SnakeBase } from './SnakeBase.js';
 import { SnakeManager } from './SnakeManager.js';
 import { SnakeController } from './SnakeController.js';
+import { makeSnakeTextures } from "./snakeTextures.js";
 
 export class SnakeGame {
   constructor(app, { startX, startY }) {
     this.app = app;
+    this.renderer = null 
+    if (!app.snakeTextures) {
+      app.snakeTextures = makeSnakeTextures(() => {
+        console.log("🐍 Snake textures ready!");
 
+        // ---------- Renderer ----------
+        this.renderer = new SnakeManager(
+          app,
+          new SnakeBase({
+            headTexture: app.snakeTextures.head,
+            bodyTexture: app.snakeTextures.body,
+            tailTexture: app.snakeTextures.tail,
+            appleTexture: app.snakeTextures.apple,
+          }),
+          tileSize,
+          worldSize
+        );
+
+      });
+    }
     // ----------- 正确读取 GameState -----------
     const worldSize = app.gameState.world.size;
     const tileSize = app.gameState.world.tileSize;
@@ -22,13 +42,7 @@ export class SnakeGame {
     // ---------- Controller ----------
     this.controller = new SnakeController(this.model);
 
-    // ---------- Renderer ----------
-    this.renderer = new SnakeManager(
-      app,
-      new SnakeBase({}),
-      tileSize,
-      worldSize
-    );
+
   }
 
   /** 🌀 死亡后重开 */
@@ -49,6 +63,7 @@ export class SnakeGame {
     const alive = this.controller.step(dir);
     if (!alive) {
       console.warn("Snake died! Restarting...");
+      this.app.inventory.add('apple', this.model.len() - 1);
       this.restart();
     }
   }
@@ -58,9 +73,12 @@ export class SnakeGame {
     const worldSize = this.app.gameState.world.size;
     const tileSize = this.app.gameState.world.tileSize;
 
+    if(this.renderer == null) {
+      return 
+    }
     // 如果世界变化（setWorldSize） → 同步渲染器
     if (this.renderer.worldSize !== worldSize ||
-        this.renderer.tileSize !== tileSize) {
+      this.renderer.tileSize !== tileSize) {
 
       if (this.renderer.updateConfig) {
         this.renderer.updateConfig(tileSize, worldSize);

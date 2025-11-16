@@ -31,6 +31,9 @@ export class Snake {
     }
   }
 
+  len() {
+    return this.body.length;
+  }
   head() {
     return this.body[0];
   }

@@ -7,6 +7,7 @@ export class Inventory {
       pumpkin: 0,
       straw: 0,
       gold : 0,
+      apple:0,
     };
 
     // 可选：监听器，用于 UI 刷新

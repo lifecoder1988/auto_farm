@@ -1,24 +1,21 @@
 // engine/snake/SnakeBase.js
 
 export class SnakeBase {
-  constructor({ bodyColor = 0x00ff00, foodColor = 0xff0000 }) {
-    this.bodyColor = bodyColor;
+  constructor({
+    headTexture = null,
+    bodyTexture = null,
+    tailTexture = null,
+    appleTexture = null,
+    foodColor = 0xff0000,
+    scale = 1.0,
+  }) {
+    this.headTexture = headTexture;
+    this.bodyTexture = bodyTexture;
+    this.tailTexture = tailTexture;
+    this.appleTexture = appleTexture;
+    
+    this.scale = scale;   // 用于整体缩放（比如 0.9 看着更可爱）
+
     this.foodColor = foodColor;
-  }
-
-  renderBodySegment(g, tileSize, seg) {
-    g.beginFill(this.bodyColor);
-    g.drawRect(seg.x * tileSize, seg.y * tileSize, tileSize, tileSize);
-    g.endFill();
-  }
-
-  renderFood(g, tileSize, food) {
-    g.beginFill(this.foodColor);
-    g.drawCircle(
-      food.x * tileSize + tileSize / 2,
-      food.y * tileSize + tileSize / 2,
-      tileSize / 3
-    );
-    g.endFill();
   }
 }

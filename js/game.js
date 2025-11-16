@@ -80,6 +80,7 @@ export function initGame() {
     pumpkin: 1000,
     straw: 1000,
     gold:0,
+    apple:0,
   });
   app.inventory.onChange(() => updateInventory());
 
@@ -187,7 +188,7 @@ export function initGame() {
     const t = app.inventory.getAll();
     console.log(t)
     inv.textContent =
-      `🎒 背包: 土豆(${t.potato}) 花生(${t.peanut}) 南瓜(${t.pumpkin}) 稻草(${t.straw}) 金币(${t.gold})`;
+      `🎒 背包: 土豆(${t.potato}) 花生(${t.peanut}) 南瓜(${t.pumpkin}) 稻草(${t.straw}) 金币(${t.gold}) 苹果(${t.apple})`;
   }
 
   // =======================
@@ -398,7 +399,9 @@ export function initGame() {
       potato: 1000,
       peanut: 1000,
       pumpkin: 1000,
-      straw: 1000
+      straw: 1000,
+      gold: 0,
+      apple: 0,
     });
 
     app.gameState.resetCrops();
@@ -493,7 +496,9 @@ export function initGame() {
   // =======================
   function animate() {
     if (app.gameState.mode === 'snake') {
-      app.snakeGame.render();
+
+      
+      app.snakeGame.render && app.snakeGame.render();
       return;
     }
 

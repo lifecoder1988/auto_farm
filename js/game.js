@@ -47,6 +47,12 @@ export function initGame() {
     antialias: true
   });
 
+  const cropTypes = {
+    '土豆': { time: 3000, item: 'potato' },
+    '花生': { time: 5000, item: 'peanut' },
+    '南瓜': { time: 7000, item: 'pumpkin' },
+    '稻草': { time: 0, item: 'straw' }
+  };
   // ⭐ GameState（核心）
   app.gameState = new GameState({
     worldSize: 3,

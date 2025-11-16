@@ -9,19 +9,20 @@ export class SnakeGame {
   constructor(app, { startX, startY }) {
     this.app = app;
 
-    const worldSize = app.gameState.worldSize;
-    const tileSize = app.gameState.tileSize;
+    // ----------- 正确读取 GameState -----------
+    const worldSize = app.gameState.world.size;
+    const tileSize = app.gameState.world.tileSize;
 
     this.startX = startX ?? 0;
     this.startY = startY ?? 0;
 
-    // 1. model（蛇的身体数据）
+    // ---------- Model ----------
     this.model = new Snake(worldSize, this.startX, this.startY);
 
-    // 2. controller（逻辑控制：移动、判死、吃苹果…）
+    // ---------- Controller ----------
     this.controller = new SnakeController(this.model);
 
-    // 3. renderer（画蛇）
+    // ---------- Renderer ----------
     this.renderer = new SnakeManager(
       app,
       new SnakeBase({}),
@@ -30,37 +31,44 @@ export class SnakeGame {
     );
   }
 
-  /** 当蛇死亡时自动重开 */
+  /** 🌀 死亡后重开 */
   restart() {
-    const worldSize = this.app.gameState.worldSize;
+    const worldSize = this.app.gameState.world.size;
+    const tileSize = this.app.gameState.world.tileSize;
 
     this.model = new Snake(worldSize, this.startX, this.startY);
     this.controller = new SnakeController(this.model);
+
+    if (this.renderer.updateConfig) {
+      this.renderer.updateConfig(tileSize, worldSize);
+    }
   }
 
-  /** step(dir): 每次玩家 move 调用一次 */
+  /** 🏃 移动一步 */
   step(dir) {
     const alive = this.controller.step(dir);
-
     if (!alive) {
       console.warn("Snake died! Restarting...");
       this.restart();
     }
   }
 
-  /** 每帧渲染 */
+  /** 🎨 每帧渲染 */
   render() {
-    const worldSize = this.app.gameState.worldSize;
-    const tileSize = this.app.gameState.tileSize;
+    const worldSize = this.app.gameState.world.size;
+    const tileSize = this.app.gameState.world.tileSize;
 
-    // 如果世界大小变化（setWorldSize），renderer 要更新
+    // 如果世界变化（setWorldSize） → 同步渲染器
     if (this.renderer.worldSize !== worldSize ||
         this.renderer.tileSize !== tileSize) {
 
-      this.renderer.worldSize = worldSize;
-      this.renderer.tileSize = tileSize;
+      if (this.renderer.updateConfig) {
+        this.renderer.updateConfig(tileSize, worldSize);
+      } else {
+        this.renderer.worldSize = worldSize;
+        this.renderer.tileSize = tileSize;
+      }
 
-      // 可以选择清空一下让渲染更干净
       if (this.renderer.clear) this.renderer.clear();
     }
 

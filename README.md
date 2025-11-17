@@ -13,11 +13,22 @@ The core goal is to help players learn programming by writing code that controls
 - Unlocks grant new scripting commands and additional gameplay options.
 
 ## Current Features
-- Characters: `Dinosaur`, `Drone`; character switching is supported.
+- Characters: `Dinosaur`, `Drone` ， `Snake`; character switching is supported.
 - Crops: `Potato`, `Pumpkin`.
 - Scripting: supports basic JavaScript syntax.
 - Multi-character spawning: supported (known issues remain).
 - Technology tree: basic tree implemented; balancing and UI tuning pending.
+
+## Supported Game Modes
+- Mode 1: Classic farming
+- Mode 2: Adjacent pumpkins aligned in a straight forward direction merge
+  - ![Pumpkin merge demo](snapshot/merge_plumpkin.png)
+- Mode 3: Snake mode
+  - ![Snake mode](snapshot/snake.png)
+- Mode 4: Maze mode
+  - ![Maze mode](snapshot/maze.png)
+- Mode 5: Multi-threaded mode
+  - ![Multi-threaded mode](snapshot/threads.png)
 
 ## Roadmap
 - Core game features:

@@ -31,12 +31,16 @@ The core goal is to help players learn programming by writing code that controls
   - ![Multi-threaded mode](snapshot/threads.png)
 
 ## Roadmap
-- Core game features:
+- Core Game Features:
   - Save and Load game progress.
-- More gameplay:
-  - Maze mode.
-  - Snake mode.
+
+- More Gameplay:
+  - Maze mode ✔ Completed
+  - Snake mode ✔ Completed
   - Crop maturity affecting other crops' stats.
+
+- Performance & Optimization:
+  - Resource loading optimization (texture merging, lazy loading, caching, sprite-sheet splitting/compression, etc.)
 
 ## Known Issues
 - Spawning multiple characters has bugs in some scenarios.

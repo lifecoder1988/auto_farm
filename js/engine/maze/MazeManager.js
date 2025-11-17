@@ -75,11 +75,11 @@ export class MazeManager {
             this.mazes.push(maze);
 
             // 清空迷宫范围内农作物
-            const crops = this.app.gameState.crops;
+            
             for (let y = sy; y < sy + n; y++) {
                 for (let x = sx; x < sx + n; x++) {
                     const key = `${x}_${y}`;
-                    delete crops[key];
+                    this.app.cropManager.delete(x, y);
                 }
             }
             console.log(maze)

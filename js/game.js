@@ -56,6 +56,8 @@ export function initGame() {
     getCompletions(editor, session, pos, prefix, callback) {
       const list = [
         { caption: "move", value: "move()", meta: "game api" },
+        { caption: "setWorldSize", value: "setWorldSize(10)", meta: "game api" },
+        { caption: "createMaze", value: "createMaze(3)", meta: "game api" },
         { caption: "plant", value: "plant('土豆')", meta: "game api" },
         { caption: "harvest", value: "harvest()", meta: "game api" },
         {
@@ -481,6 +483,7 @@ export function initGame() {
 
     app.cropManager.reset();
 
+    app.cropDebug.clear();
     msg.textContent = "已重置 ⟳";
     updateInventory();
   }

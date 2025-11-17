@@ -32,6 +32,11 @@ export function handleWorkerCallFactory(ctx) {
         respond(true);
         return;
       }
+      if(name === 'changeCharacter'){
+        changeCharacter(args?.[0], args?.[1]);
+        respond(true);
+        return;
+      }
       // 其它指令在 snake 模式下无效
       respond(null);
       return;

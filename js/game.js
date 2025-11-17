@@ -1,43 +1,50 @@
 // game.js
-import { initLayers, gridLayer } from './engine/layers.js';
-import { initSoilLayer } from './engine/soil.js';
-import { drawMapFrame } from './engine/map.js';
-import { handleWorkerCallFactory } from './engine/worker-bridge.js';
+import { initLayers, gridLayer } from "./engine/layers.js";
+import { initSoilLayer } from "./engine/soil.js";
+import { drawMapFrame } from "./engine/map.js";
+import { handleWorkerCallFactory } from "./engine/worker-bridge.js";
 
-import { Inventory } from './engine/inventory/Inventory.js';
-import { CharacterManager } from './engine/characters/CharacterManager.js';
-import { EntityManager } from './engine/entities/EntityManager.js';
-import { CropManager } from './engine/crops/CropManager.js';
-import { Crop } from './engine/crops/Crop.js';
+import { Inventory } from "./engine/inventory/Inventory.js";
+import { CharacterManager } from "./engine/characters/CharacterManager.js";
+import { EntityManager } from "./engine/entities/EntityManager.js";
+import { CropManager } from "./engine/crops/CropManager.js";
+import { Crop } from "./engine/crops/Crop.js";
 
-import { GameState } from './engine/core/GameState.js';
+import { GameState } from "./engine/core/GameState.js";
 
-import { initUnlockUI } from './engine/unlock/unlock-ui.js';
-import { UnlockManager } from './engine/unlock/UnlockManager.js';
-import { TECH_TREE } from './data/unlock.js';
+import { initUnlockUI } from "./engine/unlock/unlock-ui.js";
+import { UnlockManager } from "./engine/unlock/UnlockManager.js";
+import { TECH_TREE } from "./data/unlock.js";
 
-import { SnakeGame } from './engine/snake/SnakeGame.js';
+import { SnakeGame } from "./engine/snake/SnakeGame.js";
 
-import { Maze } from './engine/maze/Maze.js';
-import { MazeManager } from './engine/maze/MazeManager.js';
-import { renderAllMazes } from './engine/maze/renderMaze.js';
+import { Maze } from "./engine/maze/Maze.js";
+import { MazeManager } from "./engine/maze/MazeManager.js";
+import { renderAllMazes } from "./engine/maze/renderMaze.js";
+
+import {
+  detectSquaresUnique,
+  applyMergeArea,
+} from "./engine/crops/CropMerge.js";
+import { CropEventBus } from "./engine/crops/CropEventBus.js";
+import { CropDebugRenderer } from "./engine/crops/CropDebugRenderer.js";
 
 export function initGame() {
-  const msg = document.getElementById('msg');
-  const inv = document.getElementById('inventory');
-  const consoleOut = document.getElementById('console-output');
-  const techOverlay = document.getElementById('tech-overlay');
-  const techToggleBtn = document.getElementById('toggle-tech');
-  const techCloseBtn = document.getElementById('tech-close');
-  const runBtn = document.getElementById('run');
-  const timeoutInput = document.getElementById('timeout-ms');
+  const msg = document.getElementById("msg");
+  const inv = document.getElementById("inventory");
+  const consoleOut = document.getElementById("console-output");
+  const techOverlay = document.getElementById("tech-overlay");
+  const techToggleBtn = document.getElementById("toggle-tech");
+  const techCloseBtn = document.getElementById("tech-close");
+  const runBtn = document.getElementById("run");
+  const timeoutInput = document.getElementById("timeout-ms");
 
-  msg.textContent = '已就绪 ✅';
+  msg.textContent = "已就绪 ✅";
 
   // 编辑器
-  const editor = ace.edit('editor');
-  editor.setTheme('ace/theme/monokai');
-  editor.session.setMode('ace/mode/javascript');
+  const editor = ace.edit("editor");
+  editor.setTheme("ace/theme/monokai");
+  editor.session.setMode("ace/mode/javascript");
   editor.setOptions({
     enableBasicAutocompletion: true,
     enableLiveAutocompletion: true,
@@ -51,17 +58,25 @@ export function initGame() {
         { caption: "move", value: "move()", meta: "game api" },
         { caption: "plant", value: "plant('土豆')", meta: "game api" },
         { caption: "harvest", value: "harvest()", meta: "game api" },
-        { caption: "spawn", value: "spawn(async ({ move, plant, harvest }) => {\n\t\n})", meta: "snippet" },
-        { caption: "changeCharacter", value: "changeCharacter('dino')", meta: "game api" },
+        {
+          caption: "spawn",
+          value: "spawn(async ({ move, plant, harvest }) => {\n\t\n})",
+          meta: "snippet",
+        },
+        {
+          caption: "changeCharacter",
+          value: "changeCharacter('dino')",
+          meta: "game api",
+        },
       ];
 
       callback(null, list);
-    }
+    },
   };
 
   ace.require("ace/ext/language_tools").addCompleter(customCompleter);
   // Pixi 初始化
-  const canvasEl = document.getElementById('map');
+  const canvasEl = document.getElementById("map");
   const viewW = canvasEl?.width || 400;
   const viewH = canvasEl?.height || 400;
 
@@ -69,30 +84,55 @@ export function initGame() {
     width: viewW,
     height: viewH,
     backgroundAlpha: 0,
-    antialias: true
+    antialias: true,
+  });
+
+  app.cropDebug = new CropDebugRenderer(app);
+
+  CropEventBus.on("crop:mature", () => {
+    const size = app.gameState.world.size;
+
+    // 计算正方形区域
+    const squares = detectSquaresUnique(app.cropManager, size);
+
+    // 写 mergeArea
+    squares.forEach((area) => applyMergeArea(app.cropManager, area));
+
+    // debug 边框渲染
+    app.cropDebug.drawSquares(squares);
   });
 
 
+  CropEventBus.on("crop:harvest:merged", () => {
+    const size = app.gameState.world.size;
+
+    // 计算正方形区域
+    const squares = detectSquaresUnique(app.cropManager, size);
+
+    // 写 mergeArea
+    squares.forEach((area) => applyMergeArea(app.cropManager, area));
+
+    // debug 边框渲染
+    app.cropDebug.drawSquares(squares);
+  });
 
   const cropTypes = {
-    '土豆': { time: 3000, item: 'potato' },
-    '花生': { time: 5000, item: 'peanut' },
-    '南瓜': { time: 7000, item: 'pumpkin' },
-    '稻草': { time: 0, item: 'straw' }
+    土豆: { time: 3000, item: "potato" },
+    花生: { time: 5000, item: "peanut" },
+    南瓜: { time: 7000, item: "pumpkin" },
+    稻草: { time: 0, item: "straw" },
   };
   // ⭐ GameState（核心）
   app.gameState = new GameState({
     worldSize: 3,
-    viewWidth: viewW
+    viewWidth: viewW,
   });
 
   // 替换原 canvas
-  app.view.id = 'map';
+  app.view.id = "map";
   if (canvasEl?.parentNode) {
     canvasEl.parentNode.replaceChild(app.view, canvasEl);
   }
-
-
 
   // ⭐ Inventory（背包）
   app.inventory = new Inventory({
@@ -100,8 +140,8 @@ export function initGame() {
     peanut: 1000,
     pumpkin: 1000,
     straw: 1000,
-    gold:0,
-    apple:0,
+    gold: 0,
+    apple: 0,
   });
   app.inventory.onChange(() => updateInventory());
 
@@ -115,22 +155,22 @@ export function initGame() {
 
   // ⭐ CropManager（渲染作物）
   app.cropManager = new CropManager();
-
+  app.cropManager.updateConfig(
+    app.gameState.world.size,
+    app.gameState.world.tileSize
+  );
   // ⭐ UnlockManager（科技树）
   app.unlockManager = new UnlockManager({
     inventory: app.inventory,
     techLevels: {},
     unlocks: {},
-    techTree: TECH_TREE
+    techTree: TECH_TREE,
   });
 
   app.mazeManager = new MazeManager(app);
 
   // 初始化科技 UI
   initUnlockUI(app, TECH_TREE);
-
-  // 当前地图 crops 数据
-  let crops = app.gameState.crops;
 
   // 初始化图层
   const layers = initLayers(app);
@@ -140,8 +180,8 @@ export function initGame() {
   initSoilLayer({
     mapSize: app.gameState.world.size,
     tileSize: app.gameState.world.tileSize,
-    url: 'asset/image/soil.png',
-    soilLayer: layers.soilLayer
+    url: "asset/image/soil.png",
+    soilLayer: layers.soilLayer,
   });
 
   // 画网格
@@ -153,7 +193,6 @@ export function initGame() {
   let runTimeoutMs = 600000;
   const pendingFrameReqs = [];
   let isRunning = false;
-
 
   // =======================
   // 工具函数
@@ -172,17 +211,13 @@ export function initGame() {
     }
   }
 
-
   function createMaze(size, id) {
     const e = entityManager.getEntity(id);
     if (!e) return;
 
-
-
     app.mazeManager.createMaze(e.x, e.y, size);
-    renderAllMazes(app);   // 只画一次
+    renderAllMazes(app); // 只画一次
   }
-
 
   function getWorldSize() {
     return app.gameState.world.size;
@@ -198,18 +233,17 @@ export function initGame() {
   }
 
   function appendLog(args) {
-    const line = document.createElement('div');
-    line.className = 'log-line';
-    line.textContent = args.map(a => String(a)).join(' ');
+    const line = document.createElement("div");
+    line.className = "log-line";
+    line.textContent = args.map((a) => String(a)).join(" ");
     consoleOut.appendChild(line);
     consoleOut.scrollTop = consoleOut.scrollHeight;
   }
 
   function updateInventory() {
     const t = app.inventory.getAll();
-    console.log(t)
-    inv.textContent =
-      `🎒 背包: 土豆(${t.potato}) 花生(${t.peanut}) 南瓜(${t.pumpkin}) 稻草(${t.straw}) 金币(${t.gold}) 苹果(${t.apple})`;
+    console.log(t);
+    inv.textContent = `🎒 背包: 土豆(${t.potato}) 花生(${t.peanut}) 南瓜(${t.pumpkin}) 稻草(${t.straw}) 金币(${t.gold}) 苹果(${t.apple})`;
   }
 
   // =======================
@@ -221,24 +255,21 @@ export function initGame() {
 
     const maze = app.mazeManager.isInMaze(e.x, e.y);
     if (maze) {
+      if (!maze.canMove(e.x, e.y, direction)) return false;
 
-      if(!maze.canMove(e.x, e.y, direction)) return false;
-
-      entityManager.move(direction, getWorldSize(), id)
+      entityManager.move(direction, getWorldSize(), id);
 
       const treasure = maze.getTreasureGlobal();
       if (treasure.x === e.x && treasure.y === e.y) {
-
         const reward = maze.getTreasureReward();
-        app.inventory.add('gold', reward);
-     
+        app.inventory.add("gold", reward);
 
         app.mazeManager.deleteMaze(maze);
         renderAllMazes(app);
 
         console.log("宝藏已收集，迷宫删除，奖励:", reward);
-      } 
-      return 
+      }
+      return;
     }
 
     return entityManager.move(direction, getWorldSize(), id);
@@ -247,59 +278,84 @@ export function initGame() {
   function plant(type, id) {
     const e = entityManager.getEntity(id);
     if (!e) return;
-    if (app.mazeManager.isInMaze(e.x, e.y)) return ; // 不能在迷宫中种植
+    if (app.mazeManager.isInMaze(e.x, e.y)) return; // 不能在迷宫中种植
 
-    const key = `${e.x}_${e.y}`;
-    if (crops[key]) return; // 已经有作物
+    const existing = app.cropManager.get(e.x, e.y);
+    if (existing) return;
 
     const crop = new Crop({
       type,
       plantedAt: Date.now(),
       matureTime: cropTypes[type]?.time || 0,
-      key
+      key: `${e.x}_${e.y}`,
     });
 
-    crops[key] = crop;
+    app.cropManager.set(crop);
   }
 
   function canHarvest(id) {
     const e = entityManager.getEntity(id);
     if (!e) return false;
-    if (app.mazeManager.isInMaze(e.x, e.y)) return ; 
-    const crop = crops[`${e.x}_${e.y}`];
+    if (app.mazeManager.isInMaze(e.x, e.y)) return;
+    const crop = app.cropManager.get(e.x, e.y);
     if (!crop) return false;
 
-    return (Date.now() - crop.plantedAt) >= crop.matureTime;
+    return Date.now() - crop.plantedAt >= crop.matureTime;
   }
 
   function harvest(id) {
     const e = entityManager.getEntity(id);
     if (!e) return;
-    if (app.mazeManager.isInMaze(e.x, e.y)) return ; // 不能在迷宫中收获
+    if (app.mazeManager.isInMaze(e.x, e.y)) return; // 不能在迷宫中收获
 
-    const key = `${e.x}_${e.y}`;
-    const crop = crops[key];
+    const crop = app.cropManager.get(e.x, e.y);
     if (!crop) return;
 
     const elapsed = Date.now() - crop.plantedAt;
     if (elapsed < crop.matureTime) return;
 
     const itemKey = cropTypes[crop.type].item;
+    const bonus = app.unlockManager.getLevel("pumpkin");
 
-    // 🎯 科技加成
-    const bonus = app.unlockManager.getLevel('pumpkin');
-    const qty =
-      itemKey === 'pumpkin'
-        ? (1 + bonus)
-        : 1;
+    // ========= 是否属于一个 mergeArea（正方形）============
+    const area = crop.mergeArea;
 
-    app.inventory.add(itemKey, qty);
+    if (!area) {
+      // ======== 普通单格收割 ========
+      const qty = itemKey === "pumpkin" ? 1 + bonus : 1;
+      app.inventory.add(itemKey, qty);
+      app.cropManager.delete(e.x, e.y);
+      
+      return;
+    }
 
-    delete crops[key];
+    // ======== 整块合并收割（n*n）===========
+    const { x: ax, y: ay, n } = area;
+
+    let total = 0;
+
+    for (let dx = 0; dx < n; dx++) {
+      for (let dy = 0; dy < n; dy++) {
+        const cx = ax + dx;
+        const cy = ay + dy;
+
+        const c = app.cropManager.get(cx, cy);
+        if (!c) continue;
+
+        total++;
+        app.cropManager.delete(cx, cy);
+      }
+    }
+
+    if (total > 0) {
+      const qty = itemKey === "pumpkin" ? total * (1 + bonus) : total;
+
+      app.inventory.add(itemKey, qty);
+    }
+    CropEventBus.broadcast("crop:harvest:merged");
   }
 
   function spawn() {
-  
     return entityManager.spawn(entityManager.activeId).id;
   }
 
@@ -320,6 +376,9 @@ export function initGame() {
     const size = getWorldSize();
     const tile = getTileSize();
 
+    app.cropManager.reset();
+    app.cropManager.updateConfig(size, tile);
+
     gridLayer.clear();
     layers.soilLayer.removeChildren();
     layers.cropsLayer.removeChildren();
@@ -330,39 +389,36 @@ export function initGame() {
     initSoilLayer({
       mapSize: size,
       tileSize: tile,
-      url: 'asset/image/soil.png',
-      soilLayer: layers.soilLayer
+      url: "asset/image/soil.png",
+      soilLayer: layers.soilLayer,
     });
 
     app.characterManager.clear();
     app.characterManager.update(entityManager.getAll(), size, tile);
 
-    console.log('地图已重绘');
+    console.log("地图已重绘");
   }
 
   // =======================
   // 蛇模式
   // =======================
   function enterSnakeMode() {
-    app.gameState.mode = 'snake';
+    app.gameState.mode = "snake";
 
-    app.gameState.resetCrops();
-    crops = app.gameState.crops;
+    app.cropManager.reset();
 
     layers.cropsLayer.removeChildren();
     layers.entitiesLayer.removeChildren();
 
     const e0 = entityManager.getById(0) || entityManager.getActive();
 
-    app.snakeGame = new SnakeGame(
-      app,
-      getTileSize(),
-      getWorldSize(),
-      { startX: e0.x, startY: e0.y }
-    );
+    app.snakeGame = new SnakeGame(app, getTileSize(), getWorldSize(), {
+      startX: e0.x,
+      startY: e0.y,
+    });
   }
 
-  function exitSnakeMode(type = 'drone') {
+  function exitSnakeMode(type = "drone") {
     const head = app.snakeGame.model.body[0];
     const e0 = entityManager.getById(0);
 
@@ -377,7 +433,7 @@ export function initGame() {
     }
 
     app.snakeGame = null;
-    app.gameState.mode = 'farm';
+    app.gameState.mode = "farm";
 
     layers.cropsLayer.removeChildren();
     layers.entitiesLayer.removeChildren();
@@ -392,21 +448,21 @@ export function initGame() {
 
     const key = String(typeKey).trim().toLowerCase();
     const map = {
-      'drone': 'drone',
-      '无人机': 'drone',
-      'dino': 'dino',
-      '恐龙': 'dino',
-      'snake': 'snake'
+      drone: "drone",
+      无人机: "drone",
+      dino: "dino",
+      恐龙: "dino",
+      snake: "snake",
     };
 
     const nextType = map[key];
     if (!nextType) return;
 
-    if (nextType === 'snake') {
+    if (nextType === "snake") {
       enterSnakeMode();
       return;
     }
-    if (app.gameState.mode === 'snake') {
+    if (app.gameState.mode === "snake") {
       exitSnakeMode(nextType);
       return;
     }
@@ -418,20 +474,16 @@ export function initGame() {
   // 重置
   // =======================
   function reset() {
-
     abortRun();
     app.mazeManager.deleteAll();
-    
+
     entityManager.reset();
-    
 
-    app.gameState.resetCrops();
-    crops = app.gameState.crops;
+    app.cropManager.reset();
 
-    msg.textContent = '已重置 ⟳';
+    msg.textContent = "已重置 ⟳";
     updateInventory();
   }
-
 
   // =======================
   // Worker 回调
@@ -453,7 +505,7 @@ export function initGame() {
     getWorldSize,
     getTileSize,
     setWorldSize,
-    createMaze
+    createMaze,
   });
 
   // =======================
@@ -461,53 +513,55 @@ export function initGame() {
   // =======================
   function setRunning(v) {
     isRunning = v;
-    runBtn.textContent = v ? '中止' : '运行';
+    runBtn.textContent = v ? "中止" : "运行";
   }
 
   function abortRun() {
-    try { worker?.terminate(); } catch { }
+    try {
+      worker?.terminate();
+    } catch {}
     worker = null;
 
     if (runTimeoutHandle) clearTimeout(runTimeoutHandle);
 
     setRunning(false);
-    msg.textContent = '运行已中止 ⛔';
+    msg.textContent = "运行已中止 ⛔";
   }
 
   function runUserCode() {
-    msg.textContent = '运行中…';
+    msg.textContent = "运行中…";
     setRunning(true);
 
     const code = editor.getValue();
 
     if (worker) worker.terminate();
-    worker = new Worker('./js/runner.js');
+    worker = new Worker("./js/runner.js");
 
     worker.onmessage = (e) => {
       const data = e.data;
       if (!data) return;
 
-      if (data.type === 'call') {
+      if (data.type === "call") {
         handleWorkerCall(data, worker);
-      } else if (data.type === 'log') {
+      } else if (data.type === "log") {
         appendLog(data.args || []);
-      } else if (data.type === 'complete') {
+      } else if (data.type === "complete") {
         clearTimeout(runTimeoutHandle);
         setRunning(false);
-        msg.textContent = '运行完成';
-      } else if (data.type === 'error') {
+        msg.textContent = "运行完成";
+      } else if (data.type === "error") {
         clearTimeout(runTimeoutHandle);
         setRunning(false);
-        msg.textContent = '代码错误: ' + data.error;
+        msg.textContent = "代码错误: " + data.error;
       }
     };
 
-    worker.postMessage({ type: 'run', code });
+    worker.postMessage({ type: "run", code });
 
     if (runTimeoutMs > 0) {
       runTimeoutHandle = setTimeout(() => {
         abortRun();
-        msg.textContent = '运行超时';
+        msg.textContent = "运行超时";
       }, runTimeoutMs);
     }
   }
@@ -516,27 +570,25 @@ export function initGame() {
   // 动画循环
   // =======================
   function animate() {
-    if (app.gameState.mode === 'snake') {
-
-      
+    if (app.gameState.mode === "snake") {
       app.snakeGame.render && app.snakeGame.render();
       return;
     }
 
-    app.cropManager.updateCrops(crops);
+    app.cropManager.updateCrops();
 
     drawMapFrame({
       app,
       mapSize: getWorldSize(),
       tileSize: getTileSize(),
-      crops,
-      entities: entityManager.getAll()
+      crops: app.cropManager.all(),
+      entities: entityManager.getAll(),
     });
 
     if (pendingFrameReqs.length && worker) {
       const reqs = pendingFrameReqs.splice(0);
       for (const id of reqs) {
-        worker.postMessage({ type: 'response', reqId: id, result: true });
+        worker.postMessage({ type: "response", reqId: id, result: true });
       }
     }
   }
@@ -544,23 +596,23 @@ export function initGame() {
   // =======================
   // 事件绑定
   // =======================
-  runBtn.addEventListener('click', () => {
+  runBtn.addEventListener("click", () => {
     if (isRunning) abortRun();
     else runUserCode();
   });
 
-  document.getElementById('reset').addEventListener('click', reset);
+  document.getElementById("reset").addEventListener("click", reset);
 
-  techToggleBtn.addEventListener('click', () => {
-    techOverlay.style.display = 'block';
+  techToggleBtn.addEventListener("click", () => {
+    techOverlay.style.display = "block";
   });
 
-  techCloseBtn.addEventListener('click', () => {
-    techOverlay.style.display = 'none';
+  techCloseBtn.addEventListener("click", () => {
+    techOverlay.style.display = "none";
   });
 
   timeoutInput.value = String(runTimeoutMs);
-  timeoutInput.addEventListener('change', () => {
+  timeoutInput.addEventListener("change", () => {
     const v = parseInt(timeoutInput.value);
     if (v >= 0) {
       runTimeoutMs = v;

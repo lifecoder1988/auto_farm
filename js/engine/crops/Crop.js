@@ -10,6 +10,7 @@ export class Crop {
 
     this._lastMature = false;
     this.onMature = null;            // 单作物回调（可选）
+    this.mergeArea = null;
   }
 
   get progress() {

@@ -1,37 +1,76 @@
 // engine/crops/CropManager.js
-import { cropsLayer } from '../layers.js';
+import { cropsLayer } from "../layers.js";
 
-import { PotatoCrop } from './PotatoCrop.js';
-import { PumpkinCrop } from './PumpkinCrop.js';
-import { CropEventBus } from './CropEventBus.js';
+import { PotatoCrop } from "./PotatoCrop.js";
+import { PumpkinCrop } from "./PumpkinCrop.js";
+import { CropEventBus } from "./CropEventBus.js";
 
 // 可以随时扩展更多作物：CarrotCrop, PeanutCrop...
 const CROP_TYPES = {
-  '土豆': new PotatoCrop(),
-  '南瓜': new PumpkinCrop(),
+  土豆: new PotatoCrop(),
+  南瓜: new PumpkinCrop(),
 };
 
 export class CropManager {
   constructor() {
     // key: "x_y" → { sprite, frameIdx }
     this.cropSprites = new Map();
-
-    CropEventBus.on("crop:mature", (crop, key) => {
-      console.log("作物成熟:", crop.type, key);
-    });
-
+    this.crops = {};
+    
   }
 
-  updateCrops(crops) {
-  for (const key in crops) {
-    const crop = crops[key];
-    if (crop && typeof crop.checkMature === 'function') {
-      crop.checkMature();
+  applyMergeArea({ x, y, n }) {
+    for (let ix = 0; ix < n; ix++) {
+      for (let iy = 0; iy < n; iy++) {
+        const crop = this.get(x + ix, y + iy);
+        if (crop) {
+          crop.mergeArea = { x, y, n }; // 左上角 + 边长
+        }
+      }
     }
   }
-}
+  key(x, y) {
+    return `${x}_${y}`;
+  }
 
-  draw({ crops, mapSize, tileSize }) {
+  get(x, y) {
+    return this.crops[this.key(x, y)];
+  }
+
+  set(crop) {
+    this.crops[crop.key] = crop;
+  }
+
+  delete(x, y) {
+    delete this.crops[this.key(x, y)];
+  }
+
+  all() {
+    return this.crops;
+  }
+
+  reset() {
+    this.crops = {};
+  }
+
+
+
+
+
+  updateCrops() {
+    for (const key in this.crops) {
+      const crop = this.crops[key];
+      if (crop && typeof crop.checkMature === "function") {
+        crop.checkMature();
+      }
+    }
+  }
+
+  updateConfig(mapSize, tileSize) {
+    this.mapSize = mapSize;
+    this.tileSize = tileSize;
+  }
+  draw({ mapSize, tileSize }) {
     const now = Date.now();
     const seen = new Set();
 
@@ -39,7 +78,7 @@ export class CropManager {
       for (let x = 0; x < mapSize; x++) {
         const ly = mapSize - 1 - screenY; // 世界坐标转 screen 坐标
         const key = `${x}_${ly}`;
-        const crop = crops[key];
+        const crop = this.crops[key];
         if (!crop) continue;
 
         seen.add(key);

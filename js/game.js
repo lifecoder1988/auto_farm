@@ -55,20 +55,62 @@ export function initGame() {
   const customCompleter = {
     getCompletions(editor, session, pos, prefix, callback) {
       const list = [
-        { caption: "move", value: "move()", meta: "game api" },
-        { caption: "setWorldSize", value: "setWorldSize(10)", meta: "game api" },
-        { caption: "createMaze", value: "createMaze(3)", meta: "game api" },
-        { caption: "plant", value: "plant('土豆')", meta: "game api" },
-        { caption: "harvest", value: "harvest()", meta: "game api" },
         {
-          caption: "spawn",
-          value: "spawn(async ({ move, plant, harvest }) => {\n\t\n})",
-          meta: "snippet",
+          caption: "move(dir)",
+          value: "move('up')",
+          meta: "game api",
+          docHTML:
+            "<b>move(dir)</b><br/>让角色在地图上移动。dir 是方向字符串（'up'/'down'/'left'/'right'）。",
         },
+
         {
-          caption: "changeCharacter",
+          caption: "setWorldSize(size)",
+          value: "setWorldSize(10)",
+          meta: "game api",
+          docHTML:
+            "<b>setWorldSize(size)</b><br/>重设世界地图大小（会重绘地图）。",
+        },
+
+        {
+          caption: "createMaze(n)",
+          value: "createMaze(3)",
+          meta: "game api",
+          docHTML:
+            "<b>createMaze(n)</b><br/>创建迷宫结构，n 是迷宫大小（整数）。",
+        },
+
+        {
+          caption: "plant(type)",
+          value: "plant('土豆')",
+          meta: "game api",
+          docHTML: "<b>plant(type)</b><br/>种植作物。支持：'土豆'、'南瓜'。",
+        },
+
+        {
+          caption: "harvest()",
+          value: "harvest()",
+          meta: "game api",
+          docHTML: "<b>harvest()</b><br/>收获成熟作物，未成熟不会有任何效果。",
+        },
+
+        {
+          caption: "changeCharacter(type)",
           value: "changeCharacter('dino')",
           meta: "game api",
+          docHTML:
+            "<b>changeCharacter(type)</b><br/>切换角色外形。示例：'dino'、'drone'、'snake'。切换到'snake'会进入贪吃蛇模式。",
+        },
+
+        {
+          caption: "spawn(async ({ move, plant, harvest, id }) => {})",
+          meta: "snippet",
+          value: `spawn(async ({ move, plant, harvest, id }) => {
+  await move(0, 1)
+  await plant('土豆')
+  await harvest()
+})`,
+          docHTML:
+            "<b>spawn(callback)</b><br/>创建一个分身（可并行运行）。<br/>回调参数包含 move/plant/harvest。（贪吃蛇模式下不可用）",
         },
       ];
 
@@ -103,7 +145,6 @@ export function initGame() {
     // debug 边框渲染
     app.cropDebug.drawSquares(squares);
   });
-
 
   CropEventBus.on("crop:harvest:merged", () => {
     const size = app.gameState.world.size;
@@ -327,7 +368,7 @@ export function initGame() {
       const qty = itemKey === "pumpkin" ? 1 + bonus : 1;
       app.inventory.add(itemKey, qty);
       app.cropManager.delete(e.x, e.y);
-      
+
       return;
     }
 

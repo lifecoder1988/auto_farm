@@ -22,6 +22,10 @@ import { Maze } from "./engine/maze/Maze.js";
 import { MazeManager } from "./engine/maze/MazeManager.js";
 import { renderAllMazes } from "./engine/maze/renderMaze.js";
 
+import { DEFAULT_CODE } from './default_code.js';
+
+import { appendLog } from "./ui/console.js";
+
 import {
   detectSquaresUnique,
   applyMergeArea,
@@ -32,7 +36,7 @@ import { CropDebugRenderer } from "./engine/crops/CropDebugRenderer.js";
 export function initGame() {
   const msg = document.getElementById("msg");
   const inv = document.getElementById("inventory");
-  const consoleOut = document.getElementById("console-output");
+ 
   const techOverlay = document.getElementById("tech-overlay");
   const techToggleBtn = document.getElementById("toggle-tech");
   const techCloseBtn = document.getElementById("tech-close");
@@ -43,6 +47,7 @@ export function initGame() {
 
   // 编辑器
   const editor = ace.edit("editor");
+  editor.setValue(DEFAULT_CODE, -1);
   editor.setTheme("ace/theme/monokai");
   editor.session.setMode("ace/mode/javascript");
   editor.setOptions({
@@ -55,6 +60,13 @@ export function initGame() {
   const customCompleter = {
     getCompletions(editor, session, pos, prefix, callback) {
       const list = [
+        {
+          caption: "console.log(msg)",
+          value: "console.log('hello world')",
+          meta: "game api",
+          docHTML:
+            "<b>console.log(msg)</b><br/>打印消息到控制台。",
+        },
         {
           caption: "move(dir)",
           value: "move('up')",
@@ -275,13 +287,7 @@ export function initGame() {
     rebuildWorld();
   }
 
-  function appendLog(args) {
-    const line = document.createElement("div");
-    line.className = "log-line";
-    line.textContent = args.map((a) => String(a)).join(" ");
-    consoleOut.appendChild(line);
-    consoleOut.scrollTop = consoleOut.scrollHeight;
-  }
+
 
   function updateInventory() {
     const t = app.inventory.getAll();

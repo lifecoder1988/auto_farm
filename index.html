@@ -1,140 +1,289 @@
 <!DOCTYPE html>
 <html lang="zh">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Web 编程游戏 (JavaScript)</title>
-  <script id="ace-loader" src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/ace.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-noconflict/ext-language_tools.js"></script>
-  <style>
-    :root{ --bg:#111;--panel:#1b1b1b;--panel2:#222;--ink:#eee;--accent:#4caf50;--grid:#555; }
-    *{box-sizing:border-box}
-    body {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: auto 1fr auto auto;
-      grid-template-areas:
-        "header header"
-        "editor game"
-        "footer footer"
-        "console console";
-      height: 100vh; margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      background: var(--bg); color: var(--ink);
-    }
-    header{grid-area:header; padding:10px 14px; background:var(--panel); border-bottom:1px solid #333; display:flex; gap:12px; align-items:center}
-    header h1{font-size:16px;margin:0;opacity:.9}
-    #lang-note{font-size:12px;opacity:0.8;color:#ccc;margin-left:auto;}
-    #editor { grid-area: editor; height: calc(100vh - 120px); min-height: 300px; border-right:1px solid #333; }
-    #game   { grid-area: game; display:flex; align-items:center; justify-content:center; background:var(--panel2); position:relative; }
-    /* 科技树覆盖层（窗口级别） */
-    #tech-overlay{ position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.85); border:1px solid #333; border-radius:12px; padding:14px; display:none; color:#eee; }
-    #tech-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-    #tech-title{ font-weight:700; }
-    #tech-close{ background:#3a3a3a; }
-    /* 科技树滚动容器与关系图 */
-    #tech-scroll{ position:relative; height: calc(100% - 40px); overflow-y:auto; overflow-x:hidden; }
-    #tech-graph{ position:relative; width:100%; min-height:100%; }
-    .tech-node{ position:absolute; background:#1f1f1f; border:1px solid #444; border-radius:10px; padding:10px; width:300px; height:160px; overflow:hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
-    .tech-node.unlocked{ border-color:#2d6a2d; }
-    .tech-node.locked{ border-color:#6a2d2d; }
-    .tech-node.clickable{ cursor:pointer; }
-    .tech-name{ font-weight:600; margin-bottom:6px; text-align:center; font-size:16px; }
-    .tech-status{ font-size:13px; opacity:.85; margin-bottom:6px; text-align:center; }
-    .req{ font-size:13px; color:#ccc; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    canvas { background:#333; border:2px solid #555; width: 90%; height: 90%; max-width:520px; max-height:520px; }
-    /* 专用于科技树 Pixi 画布，覆盖全局 canvas 限制 */
-    #tech-canvas { 
-      width: 100% !important; 
-      height: 100% !important; 
-      max-width: none !important; 
-      max-height: none !important; 
-      display: block !important;
-      background: transparent !important; 
-      border: 0 !important;
-    }
-    /* 作为兜底：若 tech-canvas id 变更，容器内的 canvas 也应撑满 */
-    #tech-graph > canvas { 
-      width: 100% !important; 
-      height: 100% !important; 
-      max-width: none !important; 
-      max-height: none !important; 
-      display: block !important;
-      background: transparent !important; 
-      border: 0 !important;
-    }
-    footer{grid-area:footer; padding:10px 14px; background:var(--panel); border-top:1px solid #333; display:flex; gap:8px; align-items:center;}
-    #console-panel{grid-area:console; background:var(--panel); border-top:1px solid #333;}
-    #console{color:#ddd}
-    #console > summary{cursor:pointer; padding:8px 14px; font-weight:600; list-style:none}
-    #console-output{padding:8px 14px; height:160px; overflow-y:auto; overflow-x:hidden; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px; line-height:1.5;}
-    .log-line{white-space:pre-wrap; word-break:break-word}
-    button { background: var(--accent); border: none; color: white; padding: 8px 16px; cursor: pointer; border-radius: 8px; font-weight:600; }
-    button.secondary{ background:#3a3a3a }
-    #msg{ margin-left: 8px; font-size: 12px; opacity:.9 }
-    #inventory{ margin-left:20px; font-size:12px; }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>编程农场开源版</h1>
-    <span id="msg">等待初始化…</span>
-    <span id="inventory">🎒 背包: </span>
-    <span id="lang-note">🟨 当前脚本语言：JavaScript</span>
-    <button id="toggle-tech" class="secondary" style="margin-left:12px">科技树</button>
-  </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web 编程游戏 (JavaScript)</title>
+    <script
+      id="ace-loader"
+      src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/ace.js"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-noconflict/ext-language_tools.js"></script>
+    <style>
+      :root {
+        --bg: #111;
+        --panel: #1b1b1b;
+        --panel2: #222;
+        --ink: #eee;
+        --accent: #4caf50;
+        --grid: #555;
+      }
 
-  <div id="editor">
-// 支持的方法（API）：
-// move(dir)               // 'up'|'down'|'left'|'right'
-// plant(type)             // '土豆'|'南瓜'
-// harvest()
-// canHarvest()
-// spawn(async ({ move, plant, harvest, id }) => { /* ... */ })
-// getPosition()
-// changeCharacter(type)
-// getWorldSize()
-// setWorldSize(size)
-// createMaze(size, entityId?)
-//
-// 下面是运行示例：
+      * {
+        box-sizing: border-box;
+      }
 
-move('right')
-plant('土豆')
-move('down')
-harvest()</div>
+      body {
+        margin: 0;
+        height: 100vh;
+        display: grid;
 
-  <div id="game">
-    <canvas id="map" width="400" height="400"></canvas>
-    <div id="tech-overlay">
-      <div id="tech-header">
-        <div id="tech-title">科技树</div>
-        <button id="tech-close" class="secondary">关闭</button>
-      </div>
-      <div id="tech-scroll">
-        <div id="tech-graph">
-          
+        /* --- 新布局：上中下三块 --- */
+        grid-template-rows: auto 1fr auto; /* Console 固定 200px */
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas:
+          "header header"
+          "editor game"
+          "console console";
+
+        background: var(--bg);
+        color: var(--ink);
+      }
+
+      /* ---------- Header ---------- */
+      header {
+        grid-area: header;
+        padding: 10px 14px;
+        background: var(--panel);
+        border-bottom: 1px solid #333;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      header h1 {
+        font-size: 16px;
+        margin: 0;
+        opacity: 0.9;
+      }
+
+      header button {
+        margin-left: 10px;
+      }
+
+      .timeout-label {
+        margin-left: 12px;
+        font-size: 12px;
+        opacity: 0.85;
+      }
+
+      .timeout-input {
+        width: 90px;
+        margin-left: 6px;
+        background: #2a2a2a;
+        border: 1px solid #444;
+        color: #ddd;
+        padding: 4px 6px;
+        border-radius: 6px;
+      }
+      #lang-note {
+        margin-left: auto;
+        font-size: 12px;
+        opacity: 0.8;
+      }
+
+      /* ---------- Editor ---------- */
+      #editor {
+        grid-area: editor;
+        border-right: 1px solid #333;
+
+        /* 改成让 Ace 自适应父容器 */
+        height: 100%;
+        min-height: 0;
+      }
+
+      /* ---------- Game ---------- */
+      #game {
+        grid-area: game;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--panel2);
+        position: relative;
+        min-height: 0;
+      }
+
+      /* 游戏主 Canvas 设为可缩放 */
+      canvas {
+        background: #333;
+        border: 2px solid #555;
+        width: 90%;
+        height: 90%;
+        max-width: 520px;
+        max-height: 520px;
+      }
+
+      /* ---------- 科技树 ---------- */
+      #tech-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background: rgba(0, 0, 0, 0.85);
+        padding: 14px;
+        border-radius: 12px;
+        display: none;
+        color: #eee;
+      }
+
+      #tech-scroll {
+        position: relative;
+        height: calc(100% - 40px);
+        overflow-y: auto;
+      }
+
+      #tech-graph {
+        position: relative;
+        width: 100%;
+        min-height: 100%;
+      }
+
+      #tech-graph > canvas,
+      #tech-canvas {
+        width: 100% !important;
+        height: 100% !important;
+        background: transparent !important;
+        border: 0 !important;
+      }
+
+      /* ---------- Console 固定在底部 ---------- */
+      #console-panel {
+        grid-area: console;
+        background: var(--panel);
+        border-top: 1px solid #333;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      /* 折叠区域本体 */
+      #console {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      /* summary 标题 */
+      #console > summary {
+        cursor: pointer;
+        padding: 8px 14px;
+        font-weight: 600;
+        list-style: none;
+      }
+
+      /* ⭐ 控制台内容（唯一滚动区域） */
+      #console-output {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 8px 14px;
+
+        font-family: ui-monospace, Menlo, monospace;
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      /* 折叠状态时只保留 summary，高度自动缩小 */
+      #console:not([open]) {
+        height: auto; /* 允许缩小 */
+        flex: 0 0 auto; /* 不占满空间 */
+      }
+
+      /* 隐藏内容（注意：summary 不在里面，所以仍然显示） */
+      #console:not([open]) > #console-output {
+        display: none;
+      }
+
+      #console[open] > #console-output {
+        height: 200px;
+      }
+
+      .log-line {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .log-time {
+        color: #4caf50;
+        flex-shrink: 0;
+      }
+
+      .log-body {
+        margin: 0;
+        white-space: pre-wrap;
+      }
+
+      /* ---------- Buttons ---------- */
+      button {
+        background: var(--accent);
+        border: none;
+        color: white;
+        padding: 8px 16px;
+        cursor: pointer;
+        border-radius: 8px;
+        font-weight: 600;
+      }
+
+      button.secondary {
+        background: #3a3a3a;
+      }
+
+      #inventory {
+        margin-left: 20px;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>编程农场开源版</h1>
+      <span id="msg">等待初始化…</span>
+      <span id="inventory">🎒 背包: </span>
+      <span id="lang-note">🟨 当前脚本语言：JavaScript</span>
+
+      <button id="run">运行</button>
+      <button id="reset" class="secondary">重置</button>
+
+      <label for="timeout-ms" class="timeout-label">超时(ms)</label>
+      <input
+        id="timeout-ms"
+        type="number"
+        min="0"
+        step="100"
+        value="600000"
+        class="timeout-input"
+      />
+
+      <button id="toggle-tech" class="secondary">科技树</button>
+    </header>
+
+    <div id="editor"></div>
+
+    <div id="game">
+      <canvas id="map" width="400" height="400"></canvas>
+      <div id="tech-overlay">
+        <div id="tech-header">
+          <div id="tech-title">科技树</div>
+          <button id="tech-close" class="secondary">关闭</button>
+        </div>
+        <div id="tech-scroll">
+          <div id="tech-graph"></div>
         </div>
       </div>
     </div>
-  </div>
 
-  <footer>
-    <button id="run">运行</button>
-    <button id="reset" class="secondary">重置</button>
-    <label for="timeout-ms" style="margin-left:8px;font-size:12px;opacity:.85">超时(ms)</label>
-    <input id="timeout-ms" type="number" min="0" step="100" value="600000" style="width:90px;margin-left:6px;background:#2a2a2a;border:1px solid #444;color:#ddd;padding:4px 6px;border-radius:6px;">
-  </footer>
+    <footer></footer>
 
-  <div id="console-panel">
-    <details id="console" open>
-      <summary>控制台输出</summary>
-      <div id="console-output"></div>
-    </details>
-  </div>
-  <!-- 引入 PixiJS 游戏框架 -->
-  <script src="./asset/js/pixi.min.js"></script>
- 
-  <script type="module" src="js/main.js"></script>
+    <div id="console-panel">
+      <details id="console" open>
+        <summary>控制台输出</summary>
+        <div id="console-output"></div>
+      </details>
+    </div>
+    <!-- 引入 PixiJS 游戏框架 -->
+    <script src="./asset/js/pixi.min.js"></script>
 
-</body>
+    <script type="module" src="js/main.js"></script>
+  </body>
 </html>

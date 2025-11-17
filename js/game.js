@@ -245,7 +245,7 @@ export function initGame() {
   function updateInventory() {
     const t = app.inventory.getAll();
     console.log(t);
-    inv.textContent = `🎒 背包: 土豆(${t.potato}) 花生(${t.peanut}) 南瓜(${t.pumpkin}) 稻草(${t.straw}) 金币(${t.gold}) 苹果(${t.apple})`;
+    inv.textContent = `🎒 背包: 土豆(${t.potato})  南瓜(${t.pumpkin})  金币(${t.gold}) 苹果(${t.apple})`;
   }
 
   // =======================

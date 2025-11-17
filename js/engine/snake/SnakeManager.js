@@ -11,11 +11,15 @@ export class SnakeManager {
     this.bodyLayer = new PIXI.Container();
     this.foodLayer = new PIXI.Container();
 
+    // 贴图偏移（根据你提供的素材朝向）
+    this.HEAD_BASE_ROT = Math.PI / 2; // 头默认朝下 → 转成朝右
+    this.BODY_BASE_ROT = 0; // 身体默认朝右 → 无偏移
+    this.TAIL_BASE_ROT = Math.PI / 2; // 尾默认朝上 → 转成朝右
+
     app.stage.addChild(this.bodyLayer);
     app.stage.addChild(this.foodLayer);
   }
 
-  /** 世界或 tileSize 改变时更新配置 */
   updateConfig(tileSize, worldSize) {
     this.tileSize = tileSize;
     this.worldSize = worldSize;
@@ -28,58 +32,42 @@ export class SnakeManager {
 
   destroy() {
     this.clear();
-
-    if (this.bodyLayer.parent) {
+    if (this.bodyLayer.parent)
       this.bodyLayer.parent.removeChild(this.bodyLayer);
-    }
-    if (this.foodLayer.parent) {
+    if (this.foodLayer.parent)
       this.foodLayer.parent.removeChild(this.foodLayer);
-    }
 
     this.bodyLayer.destroy({ children: true });
     this.foodLayer.destroy({ children: true });
   }
 
-
-  /**
-   * 根据前后段坐标，计算这一节蛇的朝向（弧度）
-   */
+  /** 统一方向计算（头/身体/尾都用这一套） */
   _computeSegmentAngle(body, index) {
+    const len = body.length;
     const cur = body[index];
-    const prev = body[index - 1];
-    const next = body[index + 1];
 
-    // 头：参考下一节
-    if (index === 0 && next) {
-      return this._angleFromDelta(next.x - cur.x, next.y - cur.y);
+    if (len === 1) {
+      return 0;
+    }
+    let dx, dy;
+
+    if (index === 0) {
+      // 头 → 朝向下一段
+      const next = body[1];
+      dx = next.x - cur.x;
+      dy = next.y - cur.y;
+    } else {
+      // 所有其他段 → 朝向上一段（更靠头）
+      const prev = body[index - 1];
+      dx = cur.x - prev.x;
+      dy = cur.y - prev.y;
     }
 
-    // 尾：参考上一节
-    if (index === body.length - 1 && prev) {
-      return this._angleFromDelta(cur.x - prev.x, cur.y - prev.y);
-    }
-
-    // 中间：尽量沿着前→后方向
-    if (prev && next) {
-      return this._angleFromDelta(next.x - prev.x, next.y - prev.y);
-    }
-
-    return 0;
+    // (0,0) 在左下 → 屏幕 y 轴向下 → dy 要取反
+    return Math.atan2(-dy, dx);
   }
 
-  _angleFromDelta(dx, dy) {
-    // 注意：棋盘 y 往上是正，但屏幕坐标系 y 往下是正，所以要翻一下
-    if (dx === 1 && dy === 0) return 0;                // 朝右
-    if (dx === -1 && dy === 0) return Math.PI;         // 朝左
-    if (dx === 0 && dy === 1) return -Math.PI / 2;     // 朝上（棋盘）→ 屏幕向上
-    if (dx === 0 && dy === -1) return Math.PI / 2;     // 朝下
-    return 0;
-  }
-  // SnakeManager.js
   draw(model) {
-
-
-
     if (!model.alive) return;
 
     this.clear();
@@ -91,49 +79,48 @@ export class SnakeManager {
     for (let i = 0; i < body.length; i++) {
       const seg = body[i];
 
-      // 选择纹理来自 SnakeBase
       let tex = this.baseRenderer.bodyTexture;
-      if (i === 0) tex = this.baseRenderer.headTexture;
-      else if (i === body.length - 1)
+      let baseRot = this.BODY_BASE_ROT;
+
+      if (i === 0) {
+        tex = this.baseRenderer.headTexture;
+        baseRot = this.HEAD_BASE_ROT;
+      } else if (i === body.length - 1) {
         tex = this.baseRenderer.tailTexture;
+        baseRot = this.TAIL_BASE_ROT;
+      }
 
       const sprite = new PIXI.Sprite(tex);
       sprite.anchor.set(0.5);
 
       const screenX = seg.x * tile + tile / 2;
       const screenY = (worldSize - 1 - seg.y) * tile + tile / 2;
-
       sprite.x = screenX;
       sprite.y = screenY;
 
       const angle = this._computeSegmentAngle(body, i);
-      sprite.rotation = angle;
+      sprite.rotation = angle + baseRot; // 最终旋转 = 朝向角度 + 贴图偏移
 
+      // 缩放
       const scale = (tile / sprite.texture.height) * this.baseRenderer.scale;
       sprite.scale.set(scale);
 
       this.bodyLayer.addChild(sprite);
     }
 
+    // 食物渲染（你的逻辑是 OK 的）
     const f = model.food;
     if (f && this.baseRenderer.appleTexture) {
-
       const apple = new PIXI.Sprite(this.baseRenderer.appleTexture);
       apple.anchor.set(0.5);
 
-      const screenX = f.x * tile + tile / 2;
-      const screenY = (worldSize - 1 - f.y) * tile + tile / 2;
+      apple.x = f.x * tile + tile / 2;
+      apple.y = (worldSize - 1 - f.y) * tile + tile / 2;
 
-      apple.x = screenX;
-      apple.y = screenY;
-
-      // 自动缩放（保持纹理比例）
-      const base = apple.texture.baseTexture;
-      const scale = (tile / base.height) * 0.8; // 80%大小比较好看
+      const scale = (tile / apple.texture.height) * 0.8;
       apple.scale.set(scale);
 
       this.foodLayer.addChild(apple);
     }
   }
-
 }

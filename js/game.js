@@ -38,7 +38,28 @@ export function initGame() {
   const editor = ace.edit('editor');
   editor.setTheme('ace/theme/monokai');
   editor.session.setMode('ace/mode/javascript');
+  editor.setOptions({
+    enableBasicAutocompletion: true,
+    enableLiveAutocompletion: true,
+    enableSnippets: true,
+  });
 
+  // === 自定义游戏 API 自动补全 ===
+  const customCompleter = {
+    getCompletions(editor, session, pos, prefix, callback) {
+      const list = [
+        { caption: "move", value: "move()", meta: "game api" },
+        { caption: "plant", value: "plant('土豆')", meta: "game api" },
+        { caption: "harvest", value: "harvest()", meta: "game api" },
+        { caption: "spawn", value: "spawn(async ({ move, plant, harvest }) => {\n\t\n})", meta: "snippet" },
+        { caption: "changeCharacter", value: "changeCharacter('dino')", meta: "game api" },
+      ];
+
+      callback(null, list);
+    }
+  };
+
+  ace.require("ace/ext/language_tools").addCompleter(customCompleter);
   // Pixi 初始化
   const canvasEl = document.getElementById('map');
   const viewW = canvasEl?.width || 400;
@@ -226,6 +247,7 @@ export function initGame() {
   function plant(type, id) {
     const e = entityManager.getEntity(id);
     if (!e) return;
+    if (app.mazeManager.isInMaze(e.x, e.y)) return ; // 不能在迷宫中种植
 
     const key = `${e.x}_${e.y}`;
     if (crops[key]) return; // 已经有作物
@@ -243,7 +265,7 @@ export function initGame() {
   function canHarvest(id) {
     const e = entityManager.getEntity(id);
     if (!e) return false;
-
+    if (app.mazeManager.isInMaze(e.x, e.y)) return ; 
     const crop = crops[`${e.x}_${e.y}`];
     if (!crop) return false;
 
@@ -253,6 +275,7 @@ export function initGame() {
   function harvest(id) {
     const e = entityManager.getEntity(id);
     if (!e) return;
+    if (app.mazeManager.isInMaze(e.x, e.y)) return ; // 不能在迷宫中收获
 
     const key = `${e.x}_${e.y}`;
     const crop = crops[key];
@@ -276,6 +299,7 @@ export function initGame() {
   }
 
   function spawn() {
+  
     return entityManager.spawn(entityManager.activeId).id;
   }
 
@@ -394,15 +418,12 @@ export function initGame() {
   // 重置
   // =======================
   function reset() {
+
+    abortRun();
+    app.mazeManager.deleteAll();
+    
     entityManager.reset();
-    app.inventory.reset({
-      potato: 1000,
-      peanut: 1000,
-      pumpkin: 1000,
-      straw: 1000,
-      gold: 0,
-      apple: 0,
-    });
+    
 
     app.gameState.resetCrops();
     crops = app.gameState.crops;

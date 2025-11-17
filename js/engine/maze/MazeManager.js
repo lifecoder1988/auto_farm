@@ -11,6 +11,10 @@ export class MazeManager {
         return this.mazes;
     }
 
+    deleteAll() {
+        this.mazes = [];
+    }
+
 
     deleteMaze(maze) {
         const idx = this.mazes.indexOf(maze);

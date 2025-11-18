@@ -26,7 +26,7 @@ export function renderUnlockPixi(app, TECH_TREE, graphEl) {
     techApp = new PIXI.Application({
       width: graphW,
       height: graphH,
-      backgroundColor: 0x6a8698,
+      backgroundColor: 0x1e1e1e,
       resolution: window.devicePixelRatio,
     });
 

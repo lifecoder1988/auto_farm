@@ -13,7 +13,7 @@ export class Snake {
     ];
 
     // 随机生成食物
-    this.food = this.randomFood();
+    this.food = null;
 
     // 游戏状态
     this.alive = true;

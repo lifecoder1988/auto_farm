@@ -1,15 +1,15 @@
 // engine/snake/SnakeGame.js
 
-import { Snake } from './Snake.js';
-import { SnakeBase } from './SnakeBase.js';
-import { SnakeManager } from './SnakeManager.js';
-import { SnakeController } from './SnakeController.js';
+import { Snake } from "./Snake.js";
+import { SnakeBase } from "./SnakeBase.js";
+import { SnakeManager } from "./SnakeManager.js";
+import { SnakeController } from "./SnakeController.js";
 import { makeSnakeTextures } from "./snakeTextures.js";
 
 export class SnakeGame {
   constructor(app, { startX, startY }) {
     this.app = app;
-    this.renderer = null 
+    this.renderer = null;
     if (!app.snakeTextures) {
       app.snakeTextures = makeSnakeTextures(() => {
         console.log("🐍 Snake textures ready!");
@@ -26,7 +26,6 @@ export class SnakeGame {
           tileSize,
           worldSize
         );
-
       });
     }
     // ----------- 正确读取 GameState -----------
@@ -41,10 +40,22 @@ export class SnakeGame {
 
     // ---------- Controller ----------
     this.controller = new SnakeController(this.model);
-
-
+    this.spawnFood();
   }
 
+  spawnFood() {
+    const need = 64;
+
+    if (!(this.app.inventory.get("cactus")>= need)) {
+      console.log(`❌ 仙人掌不足（需要 ${need}）`);
+      this.model.food = null;
+      return false;
+    }
+
+    this.app.inventory.remove("cactus", need);
+    this.model.food = this.model.randomFood();
+    return true;
+  }
   /** 🌀 死亡后重开 */
   restart() {
     const worldSize = this.app.gameState.world.size;
@@ -52,7 +63,7 @@ export class SnakeGame {
 
     this.model = new Snake(worldSize, this.startX, this.startY);
     this.controller = new SnakeController(this.model);
-
+    this.spawnFood();
     if (this.renderer.updateConfig) {
       this.renderer.updateConfig(tileSize, worldSize);
     }
@@ -63,8 +74,20 @@ export class SnakeGame {
     const alive = this.controller.step(dir);
     if (!alive) {
       console.warn("Snake died! Restarting...");
-      this.app.inventory.add('apple', this.model.len() - 1);
+      this.app.inventory.add("apple", this.model.len() - 1);
       this.restart();
+    }
+    // 🟩 这里处理吃到食物
+    const head = this.model.head();
+    if (
+      this.model.food &&
+      head.x === this.model.food.x &&
+      head.y === this.model.food.y
+    ) {
+      // 🟩 吃到食物，蛇自动增长由 controller 管理
+
+      // 🎯 再次生成食物（并扣费 64 cactus）
+      this.spawnFood();
     }
   }
 
@@ -73,13 +96,14 @@ export class SnakeGame {
     const worldSize = this.app.gameState.world.size;
     const tileSize = this.app.gameState.world.tileSize;
 
-    if(this.renderer == null) {
-      return 
+    if (this.renderer == null) {
+      return;
     }
     // 如果世界变化（setWorldSize） → 同步渲染器
-    if (this.renderer.worldSize !== worldSize ||
-      this.renderer.tileSize !== tileSize) {
-
+    if (
+      this.renderer.worldSize !== worldSize ||
+      this.renderer.tileSize !== tileSize
+    ) {
       if (this.renderer.updateConfig) {
         this.renderer.updateConfig(tileSize, worldSize);
       } else {

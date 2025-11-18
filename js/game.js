@@ -26,6 +26,7 @@ import { DEFAULT_CODE } from './data/default_code.js';
 
 import { appendLog } from "./ui/console.js";
 
+import { CROP_TYPES } from "./engine/crops/CropManager.js";
 import {
   detectSquaresUnique,
   applyMergeArea,
@@ -171,12 +172,7 @@ export function initGame() {
     app.cropDebug.drawSquares(squares);
   });
 
-  const cropTypes = {
-    土豆: { time: 3000, item: "potato" },
-    花生: { time: 5000, item: "peanut" },
-    南瓜: { time: 7000, item: "pumpkin" },
-    稻草: { time: 0, item: "straw" },
-  };
+
   // ⭐ GameState（核心）
   app.gameState = new GameState({
     worldSize: 3,
@@ -197,6 +193,7 @@ export function initGame() {
     straw: 1000,
     gold: 0,
     apple: 0,
+    hay: 1000,
   });
   app.inventory.onChange(() => updateInventory());
 
@@ -292,7 +289,7 @@ export function initGame() {
   function updateInventory() {
     const t = app.inventory.getAll();
     console.log(t);
-    inv.textContent = `🎒 背包: 土豆(${t.potato})  南瓜(${t.pumpkin})  金币(${t.gold}) 苹果(${t.apple})`;
+    inv.textContent = `🎒 背包: 草料(${t.hay}) 土豆(${t.potato})  南瓜(${t.pumpkin})  金币(${t.gold}) 苹果(${t.apple})`;
   }
 
   // =======================
@@ -335,7 +332,7 @@ export function initGame() {
     const crop = new Crop({
       type,
       plantedAt: Date.now(),
-      matureTime: cropTypes[type]?.time || 0,
+      matureTime: CROP_TYPES[type]?.time || 0,
       key: `${e.x}_${e.y}`,
     });
 
@@ -363,7 +360,7 @@ export function initGame() {
     const elapsed = Date.now() - crop.plantedAt;
     if (elapsed < crop.matureTime) return;
 
-    const itemKey = cropTypes[crop.type].item;
+    const itemKey = CROP_TYPES[crop.type].item;
     const bonus = app.unlockManager.getLevel("pumpkin");
 
     // ========= 是否属于一个 mergeArea（正方形）============
@@ -653,13 +650,13 @@ export function initGame() {
 
   document.getElementById("reset").addEventListener("click", reset);
 
-  techToggleBtn.addEventListener("click", () => {
-    techOverlay.style.display = "block";
+  /*techToggleBtn.addEventListener("click", () => {
+    techOverlay.style.display = "flex";
   });
 
   techCloseBtn.addEventListener("click", () => {
     techOverlay.style.display = "none";
-  });
+  });*/
 
   timeoutInput.value = String(runTimeoutMs);
   timeoutInput.addEventListener("change", () => {

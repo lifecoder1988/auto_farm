@@ -3,13 +3,38 @@ import { cropsLayer } from "../layers.js";
 
 import { PotatoCrop } from "./PotatoCrop.js";
 import { PumpkinCrop } from "./PumpkinCrop.js";
+import { HayCrop } from "./HayCrop.js";
+
 import { CropEventBus } from "./CropEventBus.js";
 
-// 可以随时扩展更多作物：CarrotCrop, PeanutCrop...
-const CROP_TYPES = {
-  土豆: new PotatoCrop(),
-  南瓜: new PumpkinCrop(),
+
+export const CROP_TYPES = {
+  土豆: {
+    time: 3000,
+    item: "potato",
+    renderer: new PotatoCrop(),
+  },
+
+  花生: {
+    time: 5000,
+    item: "peanut",
+    renderer: null, // 还没做 PeanutCrop，可以先留空
+  },
+
+  南瓜: {
+    time: 7000,
+    item: "pumpkin",
+    renderer: new PumpkinCrop(),
+  },
+
+  杂草: {
+    time: 0,
+    item: "hay",
+    renderer: new HayCrop(),
+  },
 };
+
+
 
 export class CropManager {
   constructor() {
@@ -83,7 +108,7 @@ export class CropManager {
 
         seen.add(key);
 
-        const renderer = CROP_TYPES[crop.type];
+        const renderer = CROP_TYPES[crop.type].renderer;
         if (!renderer) {
           console.warn("未知作物类型:", crop.type);
           continue;

@@ -28,7 +28,7 @@ export function initUnlockUI(app, TECH_TREE) {
 
 export function toggleUnlock(show) {
   if (!elOverlay) return;
-  elOverlay.style.display = show ? 'block' : 'none';
+  elOverlay.style.display = show ? 'flex' : 'none';
 
   if (show) {
     updateUnlock();

@@ -119,24 +119,28 @@
         inset: 0;
         z-index: 1000;
         background: rgba(0, 0, 0, 0.55);
-
-        /* 让内部内容居中 */
         display: flex;
         align-items: center;
         justify-content: center;
-
-        /* 默认隐藏 */
+      }
+      #tech-overlay.hidden {
         display: none;
       }
 
-      /* 弹窗容器本体 */
+      #tech-graph > canvas {
+        width: 100% !important;
+        height: auto !important;
+        max-width: none !important;
+        max-height: none !important;
+        display: block;
+      }
+       /* 弹窗容器（固定宽度，最大高度，使内容区滚动） */
       #tech-dialog {
-        width: 600px; /* ⭐ 固定宽度 */
-        max-height: 80vh; /* 超过高度可滚动 */
+        width: 1200px;
+        max-height: 80vh; /* ⭐ 必须放开，否则 canvas 会被挤扁 */
         background: #1e1e1e;
         border-radius: 12px;
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-
         padding: 14px;
         display: flex;
         flex-direction: column;
@@ -157,17 +161,26 @@
         font-weight: bold;
       }
 
-      /* 内容区滚动 */
+      /* 内容区滚动（canvas 很高时，这个地方滚动） */
       #tech-scroll {
         flex: 1;
-        overflow-y: auto;
+        overflow: auto; /* ⭐ 科技树超出高度时这里滚动 */
         padding-right: 6px;
       }
 
-      /* 里面画布撑满 */
+      /* canvas 容器 */
       #tech-graph {
         width: 100%;
-        min-height: 400px;
+        position: relative;
+      }
+
+      /* Pixi 生成的 canvas 的样式修正 */
+      #tech-graph > canvas {
+        width: 100% !important; /* 横向撑满弹窗 */
+        height: auto !important; /* ⭐ 等比缩放，保持纵向比例 */
+        display: block;
+        background: transparent !important;
+        border: 0 !important;
       }
 
       /* ---------- Console 固定在底部 ---------- */
@@ -287,7 +300,7 @@
 
     <div id="game">
       <canvas id="map" width="400" height="400"></canvas>
-      <div id="tech-overlay">
+      <div id="tech-overlay" class="hidden">
         <div id="tech-dialog">
           <div id="tech-header">
             <div id="tech-title">科技树</div>

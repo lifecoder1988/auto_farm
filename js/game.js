@@ -194,6 +194,9 @@ export function initGame() {
     gold: 0,
     apple: 0,
     hay: 1000,
+    wood: 1000,
+    carrot: 1000,
+    cactus: 1000,
   });
   app.inventory.onChange(() => updateInventory());
 
@@ -289,7 +292,7 @@ export function initGame() {
   function updateInventory() {
     const t = app.inventory.getAll();
     console.log(t);
-    inv.textContent = `🎒 背包: 草料(${t.hay}) 土豆(${t.potato})  南瓜(${t.pumpkin})  金币(${t.gold}) 苹果(${t.apple})`;
+    inv.textContent = `🎒 背包: 草料(${t.hay}) 木材(${t.wood}) 胡萝卜(${t.carrot})  南瓜(${t.pumpkin})  仙人掌(${t.cactus}) 金币(${t.gold}) 苹果(${t.apple})`;
   }
 
   // =======================

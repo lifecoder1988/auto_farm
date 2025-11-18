@@ -4,6 +4,11 @@ import { cropsLayer } from "../layers.js";
 import { PotatoCrop } from "./PotatoCrop.js";
 import { PumpkinCrop } from "./PumpkinCrop.js";
 import { HayCrop } from "./HayCrop.js";
+import { BushCrop } from "./BushCrop.js";
+import { CarrotCrop } from "./CarrotCrop.js";
+import { TreeCrop } from "./TreeCrop.js";
+import { CactusCrop } from "./CactusCrop.js";
+
 
 import { CropEventBus } from "./CropEventBus.js";
 
@@ -31,6 +36,26 @@ export const CROP_TYPES = {
     time: 0,
     item: "hay",
     renderer: new HayCrop(),
+  },
+  灌木丛: {
+    time: 0,
+    item: "wood",
+    renderer: new BushCrop(),
+  },
+  胡萝卜: {
+    time: 0,
+    item: "carrot",
+    renderer: new CarrotCrop(),
+  },
+  树: {
+    time: 0,
+    item: "wood",
+    renderer: new TreeCrop(),
+  },
+  仙人掌: {
+    time: 0,
+    item: "cactus",
+    renderer: new CactusCrop(),
   },
 };
 

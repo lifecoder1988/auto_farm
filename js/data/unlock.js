@@ -104,11 +104,11 @@ export const TECH_TREE = [
   },
 
   /* -------------------------------------------------------
-   * Dinosaurs
+   * Snake
    * -----------------------------------------------------*/
   {
-    key: "dinosaurs",
-    name: "恐龙",
+    key: "snake",
+    name: "蛇",
     tier: 7,
     deps: ["cactus"],
     levels: [
@@ -228,7 +228,7 @@ export const TECH_TREE = [
     tier: 6,
     deps: ["simulation"],
     levels: [
-      { level: 0, requires: { bone: 2000000, gold: 1000000 } }
+      { level: 0, requires: { apple: 2000000, gold: 1000000 } }
     ]
   },
 
@@ -329,10 +329,10 @@ export const TECH_TREE = [
     deps: ["pumpkins"],
     levels: [
       { level: 0, requires: { pumpkin: 3000 } },
-      { level: 1, requires: { bone: 10000 } },
-      { level: 2, requires: { bone: 50000 } },
-      { level: 3, requires: { bone: 250000 } },
-      { level: 4, requires: { bone: 1250000 } },
+      { level: 1, requires: { apple: 10000 } },
+      { level: 2, requires: { apple: 50000 } },
+      { level: 3, requires: { apple: 250000 } },
+      { level: 4, requires: { apple: 1250000 } },
     ]
   },
 
@@ -421,9 +421,9 @@ export const TECH_TREE = [
     key: "remains",
     name: "农夫的遗骨",
     tier: 8,
-    deps: ["dinosaurs"],
+    deps: ["snake"],
     levels: [
-      { level: 0, requires: { bone: 100000000 } }
+      { level: 0, requires: { apple: 100000000 } }
     ]
   },
 

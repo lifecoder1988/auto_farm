@@ -9,6 +9,9 @@ export class Inventory {
       gold : 0,
       apple:0,
       hay:0,
+      wood:0,
+      carrot:0,
+      cactus:0,
     };
 
     // 可选：监听器，用于 UI 刷新

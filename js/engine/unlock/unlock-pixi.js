@@ -7,7 +7,7 @@ let techApp = null;
 export function renderUnlockPixi(app, TECH_TREE, graphEl) {
   const unlockMgr = app.unlockManager;
 
-  // 构建树结构与 map
+  // 构建树结构
   const { roots, map } = buildTree(TECH_TREE);
 
   const cardW = 140;
@@ -18,11 +18,10 @@ export function renderUnlockPixi(app, TECH_TREE, graphEl) {
 
   // 图大小
   const graphW = 2110;
-  const allNodes = Object.values(map);
-  const maxY = Math.max(...allNodes.map((n) => n.y));
+  const maxY = Math.max(...Object.values(map).map((n) => n.y));
   const graphH = maxY + cardH + 200;
 
-  // 初始化 Pixi
+  // 初始化 Pixi，只做一次
   if (!techApp) {
     techApp = new PIXI.Application({
       width: graphW,
@@ -30,18 +29,104 @@ export function renderUnlockPixi(app, TECH_TREE, graphEl) {
       backgroundColor: 0x6a8698,
       resolution: window.devicePixelRatio,
     });
+
+    techApp.stage.sortableChildren = true;
+
+    // --- 创建图层 ---
+    techApp.graphLayer = new PIXI.Container();
+    techApp.graphLayer.zIndex = 1;
+    techApp.stage.addChild(techApp.graphLayer);
+
+    techApp.uiLayer = new PIXI.Container();
+    techApp.uiLayer.zIndex = 9999;
+    techApp.stage.addChild(techApp.uiLayer);
+
     graphEl.innerHTML = "";
     graphEl.appendChild(techApp.view);
+
   } else {
     techApp.renderer.resize(graphW, graphH);
   }
 
-  techApp.stage.removeChildren();
+  // === 清空图层 ===
+  techApp.graphLayer.removeChildren();
+  techApp.uiLayer.removeChildren();
+
+  // === Tooltip（浮层） ===
+  const tooltip = new PIXI.Container();
+  tooltip.visible = false;
+
+  const tooltipBg = new PIXI.Graphics();
+  tooltip.addChild(tooltipBg);
+
+  const tooltipText = new PIXI.Text("", {
+    fontSize: 16,
+    fill: "#fff",
+    wordWrap: true,
+    wordWrapWidth: 220,
+  });
+  tooltip.addChild(tooltipText);
+
+  // 放到 uiLayer
+  techApp.uiLayer.addChild(tooltip);
+
+  function updateTooltip(node, unlockMgr) {
+    const requires = unlockMgr.getCurrentRequires(node);
+
+    if (!requires) {
+      tooltip.visible = false;
+      return;
+    }
+
+    let lines = [];
+    lines.push(unlockMgr.isUnlocked(node.key) ? "升级需要：" : "解锁需要：");
+
+    Object.entries(requires).forEach(([item, qty]) => {
+      lines.push(`- ${item}: ${qty}`);
+    });
+
+    tooltipText.text = lines.join("\n");
+
+    const pad = 10;
+    tooltipBg.clear();
+    tooltipBg.beginFill(0x000000, 0.85);
+    tooltipBg.lineStyle(2, 0xe8d49f);
+    tooltipBg.drawRoundedRect(
+      -pad,
+      -pad,
+      tooltipText.width + pad * 2,
+      tooltipText.height + pad * 2,
+      6
+    );
+    tooltipBg.endFill();
+
+    tooltip.visible = true;
+  }
+
+  function handleNodeClick(node) {
+    const key = node.key;
+
+    if (!unlockMgr.isUnlocked(key)) {
+      if (unlockMgr.unlock(key)) {
+        renderUnlockPixi(app, TECH_TREE, graphEl);
+        return;
+      }
+    }
+
+    if (unlockMgr.canUpgrade(key)) {
+      if (unlockMgr.upgrade(key)) {
+        renderUnlockPixi(app, TECH_TREE, graphEl);
+        return;
+      }
+    }
+
+    console.log(`❌ 无法升级 ${node.name}`);
+  }
 
   // 画线条
   const g = new PIXI.Graphics();
   g.lineStyle(3, 0xe8d49f, 0.8);
-  techApp.stage.addChild(g);
+  techApp.graphLayer.addChild(g);
 
   Object.values(map).forEach((node) => {
     (node.deps || []).forEach((parentKey) => {
@@ -53,32 +138,7 @@ export function renderUnlockPixi(app, TECH_TREE, graphEl) {
     });
   });
 
-  function handleNodeClick(node, unlockMgr, app, TECH_TREE, graphEl) {
-    const key = node.key;
-
-    // 优先：未解锁 → 尝试解锁
-    if (!unlockMgr.isUnlocked(key)) {
-      const ok = unlockMgr.unlock(key);
-      if (ok) {
-        renderUnlockPixi(app, TECH_TREE, graphEl);
-        return;
-      }
-    }
-
-    // 已解锁 → 尝试升级
-    if (unlockMgr.canUpgrade(key)) {
-      const ok = unlockMgr.upgrade(key);
-      if (ok) {
-        renderUnlockPixi(app, TECH_TREE, graphEl);
-        return;
-      }
-    }
-
-    // 都不能 → 给个反馈（可选）
-    console.log(`❌ 无法升级 ${node.name}`);
-  }
-
-  // 画节点
+  // === 画节点 ===
   Object.values(map).forEach((node) => {
     const unlocked = unlockMgr.isUnlocked(node.key);
 
@@ -95,11 +155,30 @@ export function renderUnlockPixi(app, TECH_TREE, graphEl) {
     );
     card.endFill();
 
-    // 绑定事件
+    // 事件：点击
     card.interactive = true;
     card.buttonMode = true;
-    card.on("pointertap", () => handleNodeClick(node, unlockMgr, app, TECH_TREE, graphEl));
-    techApp.stage.addChild(card);
+    card.on("pointertap", () => handleNodeClick(node));
+
+    // 显示浮层
+    card.on("pointerover", (ev) => {
+      updateTooltip(node, unlockMgr);
+      const pos = ev.data.getLocalPosition(techApp.stage);
+      tooltip.x = pos.x + 20;
+      tooltip.y = pos.y + 20;
+    });
+
+    card.on("pointermove", (ev) => {
+      const pos = ev.data.getLocalPosition(techApp.stage);
+      tooltip.x = pos.x + 20;
+      tooltip.y = pos.y + 20;
+    });
+
+    card.on("pointerout", () => {
+      tooltip.visible = false;
+    });
+
+    techApp.graphLayer.addChild(card);
 
     // 图标
     if (node.icon) {
@@ -108,7 +187,7 @@ export function renderUnlockPixi(app, TECH_TREE, graphEl) {
       sprite.height = 48;
       sprite.x = node.x - 24;
       sprite.y = node.y - cardH / 2 + 10;
-      techApp.stage.addChild(sprite);
+      techApp.graphLayer.addChild(sprite);
     }
 
     // 名字
@@ -118,6 +197,21 @@ export function renderUnlockPixi(app, TECH_TREE, graphEl) {
     });
     t.x = node.x - t.width / 2;
     t.y = node.y - 20;
-    techApp.stage.addChild(t);
+    techApp.graphLayer.addChild(t);
+
+    // 等级显示（UI 级别：未解锁=0，已解锁=真实等级+1）
+    const realLv = unlockMgr.getLevel(node.key);
+    const maxLv = unlockMgr.getMaxLevel(node) + 1;
+    const uiLv = unlocked ? realLv + 1 : 0;
+
+    if (maxLv > 1) {
+      const lvText = new PIXI.Text(`(${uiLv}/${maxLv})`, {
+        fill: unlocked ? "#e8d49f" : "#888",
+        fontSize: 16,
+      });
+      lvText.x = node.x - lvText.width / 2;
+      lvText.y = node.y + 10;
+      techApp.graphLayer.addChild(lvText);
+    }
   });
 }

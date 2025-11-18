@@ -22,7 +22,7 @@ import { Maze } from "./engine/maze/Maze.js";
 import { MazeManager } from "./engine/maze/MazeManager.js";
 import { renderAllMazes } from "./engine/maze/renderMaze.js";
 
-import { DEFAULT_CODE } from './default_code.js';
+import { DEFAULT_CODE } from './data/default_code.js';
 
 import { appendLog } from "./ui/console.js";
 

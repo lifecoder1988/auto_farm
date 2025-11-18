@@ -113,36 +113,61 @@
         max-height: 520px;
       }
 
-      /* ---------- 科技树 ---------- */
+      /* ---------- 科技树（居中固定宽度） ---------- */
       #tech-overlay {
         position: fixed;
         inset: 0;
         z-index: 1000;
-        background: rgba(0, 0, 0, 0.85);
-        padding: 14px;
-        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.55);
+
+        /* 让内部内容居中 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        /* 默认隐藏 */
         display: none;
-        color: #eee;
       }
 
+      /* 弹窗容器本体 */
+      #tech-dialog {
+        width: 600px; /* ⭐ 固定宽度 */
+        max-height: 80vh; /* 超过高度可滚动 */
+        background: #1e1e1e;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* 标题栏 */
+      #tech-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #444;
+      }
+
+      #tech-title {
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      /* 内容区滚动 */
       #tech-scroll {
-        position: relative;
-        height: calc(100% - 40px);
+        flex: 1;
         overflow-y: auto;
+        padding-right: 6px;
       }
 
+      /* 里面画布撑满 */
       #tech-graph {
-        position: relative;
         width: 100%;
-        min-height: 100%;
-      }
-
-      #tech-graph > canvas,
-      #tech-canvas {
-        width: 100% !important;
-        height: 100% !important;
-        background: transparent !important;
-        border: 0 !important;
+        min-height: 400px;
       }
 
       /* ---------- Console 固定在底部 ---------- */
@@ -263,12 +288,15 @@
     <div id="game">
       <canvas id="map" width="400" height="400"></canvas>
       <div id="tech-overlay">
-        <div id="tech-header">
-          <div id="tech-title">科技树</div>
-          <button id="tech-close" class="secondary">关闭</button>
-        </div>
-        <div id="tech-scroll">
-          <div id="tech-graph"></div>
+        <div id="tech-dialog">
+          <div id="tech-header">
+            <div id="tech-title">科技树</div>
+            <button id="tech-close" class="secondary">关闭</button>
+          </div>
+
+          <div id="tech-scroll">
+            <div id="tech-graph"></div>
+          </div>
         </div>
       </div>
     </div>

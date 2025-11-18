@@ -8,6 +8,7 @@ let seq = 0;
 let slowMode = true;
 const chains = new Map();
 const GLOBAL_CHAIN_KEY = "GLOBAL";
+let codingFeatures = null;
 
 // 默认动作等待帧数
 const actionWaitFrames = { move: 10, plant: 10, harvest: 10 };
@@ -75,7 +76,7 @@ const userConsole = {
         })
       );
       send({ type: "log", args: resolved });
-    } catch (_) { }
+    } catch (_) {}
   },
 };
 
@@ -88,15 +89,10 @@ function _resolveEntityId(entityId) {
   return undefined;
 }
 
-
 async function createMaze(size, entityId) {
   const id = _resolveEntityId(entityId);
   const key = id !== undefined ? `E:${id}` : GLOBAL_CHAIN_KEY;
-  return withSlow(
-    () => callMain("createMaze", [size, id], true),
-    1,
-    key
-  );
+  return withSlow(() => callMain("createMaze", [size, id], true), 1, key);
 }
 
 async function move(direction, entityId) {
@@ -149,6 +145,10 @@ async function canHarvest(entityId) {
 
 async function waitFrame() {
   await callMain("waitFrame", [], true);
+}
+
+async function loadCodingFeatures() {
+  codingFeatures = await callMain("loadCodingFeatures", [], true);
 }
 
 function delay(ms) {
@@ -247,13 +247,19 @@ function transformSpawn(code) {
   let c = code;
 
   // 统一 async
-  c = c.replace(/spawn\s*\(\s*function(\s+\w+)?\s*\(/g, (m, n) => `spawn(async function${n || ""}(`);
+  c = c.replace(
+    /spawn\s*\(\s*function(\s+\w+)?\s*\(/g,
+    (m, n) => `spawn(async function${n || ""}(`
+  );
   c = c.replace(/spawn\s*\(\s*([^)]*?)=>\s*\{/g, "spawn(async $1=> {");
 
   // 无参函数注入 ctx
   c = c.replace(
     /spawn\s*\(\s*async\s*function(\s+\w+)?\s*\(\s*\)\s*\{/g,
-    (m, n) => `spawn(async function${n || ""}({ move, plant, harvest, canHarvest, getEntity, delay, id }){`
+    (m, n) =>
+      `spawn(async function${
+        n || ""
+      }({ move, plant, harvest, canHarvest, getEntity, delay, id }){`
   );
   c = c.replace(
     /spawn\s*\(\s*async\s*\(\s*\)\s*=>\s*\{/g,
@@ -267,16 +273,21 @@ function transformSpawn(code) {
   );
   c = c.replace(
     /spawn\s*\(\s*function(\s+\w+)?\s*\(\s*\)\s*\{/g,
-    (m, n) => `spawn(async function${n || ""}({ move, plant, harvest, canHarvest, getEntity, delay, id }){`
+    (m, n) =>
+      `spawn(async function${
+        n || ""
+      }({ move, plant, harvest, canHarvest, getEntity, delay, id }){`
   );
 
   return c;
 }
 
 function injectWaitIntoWhile(code) {
-  return code.replace(/while\s*\([^)]*\)\s*\{/g, (m) => `${m}\n await waitFrame();\n`);
+  return code.replace(
+    /while\s*\([^)]*\)\s*\{/g,
+    (m) => `${m}\n await waitFrame();\n`
+  );
 }
-
 
 function autoAwaitAsyncApi(code) {
   // 需要自动 await 的 API
@@ -296,7 +307,7 @@ function autoAwaitAsyncApi(code) {
     "setWorldSize",
     "getTileSize",
     "setSlowMode",
-    "createMaze"
+    "createMaze",
   ];
 
   for (const api of apis) {
@@ -310,9 +321,90 @@ function autoAwaitAsyncApi(code) {
 
 // ===================== 执行用户脚本 =====================
 
+async function checkUserCodeFeatures(stripped) {
+  const codeFeatureChecks = [
+    // ———————————— debug（打印） ————————————
+    {
+      feature: "debug",
+      pattern: /\bconsole\s*\.\s*log\s*\(/,
+      message: "console.log 功能尚未解锁",
+    },
+
+    // ———————————— dictionaries（对象 {}） ————————————
+    {
+      feature: "dictionaries",
+      pattern: /(?:=|\(|return)\s*\{/,
+      message: "对象（字典）功能尚未解锁",
+    },
+
+    // ———————————— functions（自定义函数） ————————————
+    {
+      feature: "functions",
+      pattern: /\bfunction\b/,
+      message: "自定义函数功能尚未解锁",
+    },
+    {
+      feature: "functions",
+      pattern: /=\s*\([^)]*\)\s*=>/,
+      message: "箭头函数功能尚未解锁",
+    },
+
+    // ———————————— lists（数组 []） ————————————
+    {
+      feature: "lists",
+      pattern: /\[[^\]]*\]/,
+      message: "数组功能尚未解锁",
+    },
+
+    // ———————————— loops（循环） ————————————
+    {
+      feature: "loops",
+      pattern: /(^|[^\w])while\s*\(/,
+      message: "while 循环功能尚未解锁",
+    },
+    {
+      feature: "loops",
+      pattern: /(^|[^\w])for\s*\(/,
+      message: "for 循环功能尚未解锁",
+    },
+
+    // ———————————— operators（运算符） ————————————
+    {
+      feature: "operators",
+      pattern: /[+\-*/%]=?|==|<=|>=|!=|<|>/,
+      message: "运算符功能尚未解锁（+ - * / % 以及比较运算符)",
+    },
+
+    // ———————————— variables（let/const/var） ————————————
+    {
+      feature: "variables",
+      pattern: /\b(let|const|var)\b/,
+      message: "变量功能尚未解锁（let/const/var）",
+    },
+  ];
+
+  for (const rule of codeFeatureChecks) {
+    if (rule.pattern.test(stripped)) {
+      const unlocked = codingFeatures?.[rule.feature];
+      if (!unlocked) {
+        send({ type: "error", error: rule.message });
+        return false; // ❌ 不允许继续执行
+      }
+    }
+  }
+  return true; // ✔ 所有检测通过
+}
 
 async function runUserCode(raw) {
+  await loadCodingFeatures();
+
+  console.log(codingFeatures);
+
   const stripped = strip(raw);
+
+  const pass = await checkUserCodeFeatures(stripped);
+  if (!pass) return;
+
   const usesWhile = /(^|[^\w])while\s*\(/.test(stripped);
 
   let code = raw;

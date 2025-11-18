@@ -12,6 +12,7 @@ export class Inventory {
       wood:0,
       carrot:0,
       cactus:0,
+      sunflower:0,
     };
 
     // 可选：监听器，用于 UI 刷新

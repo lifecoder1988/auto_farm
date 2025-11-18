@@ -197,6 +197,8 @@ export function initGame() {
     wood: 1000,
     carrot: 1000,
     cactus: 1000,
+    sunflower: 1000,
+    
   });
   app.inventory.onChange(() => updateInventory());
 
@@ -292,7 +294,7 @@ export function initGame() {
   function updateInventory() {
     const t = app.inventory.getAll();
     console.log(t);
-    inv.textContent = `🎒 背包: 草料(${t.hay}) 木材(${t.wood}) 胡萝卜(${t.carrot})  南瓜(${t.pumpkin})  仙人掌(${t.cactus}) 金币(${t.gold}) 苹果(${t.apple})`;
+    inv.textContent = `🎒 背包: 草料(${t.hay}) 木材(${t.wood}) 胡萝卜(${t.carrot})  南瓜(${t.pumpkin})  仙人掌(${t.cactus}) 金币(${t.gold}) 苹果(${t.apple}) 向日葵(${t.sunflower})`;
   }
 
   // =======================
@@ -519,6 +521,10 @@ export function initGame() {
     e.type = nextType;
   }
 
+
+  function loadCodingFeatures() {
+    return app.unlockManager.loadCodingFeatures();
+  }
   // =======================
   // 重置
   // =======================
@@ -556,6 +562,7 @@ export function initGame() {
     getTileSize,
     setWorldSize,
     createMaze,
+    loadCodingFeatures,
   });
 
   // =======================

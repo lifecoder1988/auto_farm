@@ -2,7 +2,7 @@ export class UnlockManager {
   constructor({ inventory, techLevels = {}, unlocks = {}, techTree = [] }) {
     this.inventory = inventory;
     this.techLevels = techLevels; // { key: number }
-    this.unlocks = unlocks;       // { key: true }
+    this.unlocks = unlocks; // { key: true }
     this.techTree = techTree;
 
     this.listeners = new Set();
@@ -14,11 +14,21 @@ export class UnlockManager {
 
     const lv = this.getLevel(node.key);
     const info = node.levels[lv];
-    if (!info) return null;  // 已达最高级
+    if (!info) return null; // 已达最高级
 
     return info.requires || {};
   }
 
+  loadCodingFeatures() {
+    const result = {};
+
+    for (const node of this.techTree) {
+      if (!node.key) continue;
+      result[node.key] = this.isUnlocked(node.key);
+    }
+
+    return result;
+  }
   /** 最大等级 */
   getMaxLevel(node) {
     if (!node.levels) return node.maxLevel || 0;
@@ -26,7 +36,7 @@ export class UnlockManager {
   }
 
   getNode(key) {
-    return this.techTree.find(n => n.key === key);
+    return this.techTree.find((n) => n.key === key);
   }
 
   getLevel(key) {
@@ -37,9 +47,15 @@ export class UnlockManager {
     return !!this.unlocks[key];
   }
 
-  onChange(fn) { this.listeners.add(fn); }
-  offChange(fn) { this.listeners.delete(fn); }
-  notify() { this.listeners.forEach(fn => fn()); }
+  onChange(fn) {
+    this.listeners.add(fn);
+  }
+  offChange(fn) {
+    this.listeners.delete(fn);
+  }
+  notify() {
+    this.listeners.forEach((fn) => fn());
+  }
 
   canUnlock(key) {
     const node = this.getNode(key);
@@ -47,7 +63,7 @@ export class UnlockManager {
     if (this.isUnlocked(key)) return false;
 
     // 检查依赖
-    for (const dep of (node.deps || [])) {
+    for (const dep of node.deps || []) {
       if (!this.isUnlocked(dep)) return false;
     }
 

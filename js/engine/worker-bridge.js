@@ -11,7 +11,8 @@ export function handleWorkerCallFactory(ctx) {
     changeCharacter,
     app,
     msg,
-    createMaze
+    createMaze,
+    loadCodingFeatures
   } = ctx;
 
   return function handleWorkerCall(data, worker) {
@@ -35,6 +36,11 @@ export function handleWorkerCallFactory(ctx) {
       if(name === 'changeCharacter'){
         changeCharacter(args?.[0], args?.[1]);
         respond(true);
+        return;
+      }
+      if(name === 'loadCodingFeatures'){
+        const features = loadCodingFeatures();
+        respond(features);
         return;
       }
       // 其它指令在 snake 模式下无效
@@ -106,6 +112,12 @@ export function handleWorkerCallFactory(ctx) {
         if (reqId != null) pendingFrameReqs.push(reqId);
         return;
       }
+      case 'loadCodingFeatures': {
+        const features = loadCodingFeatures();
+        respond(features);
+        return;
+      }
+      
 
       // ==========================
       // ⭐ 换帽子

@@ -8,6 +8,8 @@ import { BushCrop } from "./BushCrop.js";
 import { CarrotCrop } from "./CarrotCrop.js";
 import { TreeCrop } from "./TreeCrop.js";
 import { CactusCrop } from "./CactusCrop.js";
+import { SunFlowerCrop } from "./SunFlowerCrop.js";
+
 
 
 import { CropEventBus } from "./CropEventBus.js";
@@ -46,6 +48,7 @@ export const CROP_TYPES = {
     time: 0,
     item: "carrot",
     renderer: new CarrotCrop(),
+    cost:{hay:512,wood:512}
   },
   树: {
     time: 0,
@@ -56,6 +59,13 @@ export const CROP_TYPES = {
     time: 0,
     item: "cactus",
     renderer: new CactusCrop(),
+    cost:{pumpkin:64}
+  },
+  向日葵: {
+    time: 0,
+    item: "sunflower",
+    renderer: new SunFlowerCrop(),
+    cost:{carrot:1}
   },
 };
 

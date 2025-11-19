@@ -424,45 +424,45 @@ export function initGame() {
       key: `${e.x}_${e.y}`,
     });
 
-    if (type === CROP_TYPE_NAMES.Cactus) {
-      const mul = unlockMgr.getAbilityValue(
+    if (type === CONSTANTS.CROP_TYPE_NAMES.Cactus) {
+      const mul = app.unlockManager.getAbilityValue(
         CONSTANTS.UNLOCKS.Cactus,
         "产量倍率",
         1
       );
       crop.setYieldMultiplier(mul);
-    } else if (type === CROP_TYPE_NAMES.Carrots) {
-      const mul = unlockMgr.getAbilityValue(
+    } else if (type === CONSTANTS.CROP_TYPE_NAMES.Carrots) {
+      const mul = app.unlockManager.getAbilityValue(
         CONSTANTS.UNLOCKS.Carrots,
         "产量倍率",
         1
       );
       crop.setYieldMultiplier(mul);
-    } else if (type === CROP_TYPE_NAMES.Pumpkins) {
-      const mul = unlockMgr.getAbilityValue(
+    } else if (type === CONSTANTS.CROP_TYPE_NAMES.Pumpkins) {
+      const mul = app.unlockManager.getAbilityValue(
         CONSTANTS.UNLOCKS.Pumpkins,
         "产量倍率",
         1
       );
       crop.setYieldMultiplier(mul);
-    } else if (type === CROP_TYPE_NAMES.Sunflowers) {
+    } else if (type === CONSTANTS.CROP_TYPE_NAMES.Sunflowers) {
       console.log("no sunflower mul");
-    } else if (type === CROP_TYPE_NAMES.Trees) {
-      const mul = unlockMgr.getAbilityValue(
+    } else if (type === CONSTANTS.CROP_TYPE_NAMES.Trees) {
+      const mul = app.unlockManager.getAbilityValue(
         CONSTANTS.UNLOCKS.Trees,
         "产量倍率",
         1
       );
       crop.setYieldMultiplier(mul);
-    } else if (type === CROP_TYPE_NAMES.Grass) {
-      const mul = unlockMgr.getAbilityValue(
+    } else if (type === CONSTANTS.CROP_TYPE_NAMES.Grass) {
+      const mul = app.unlockManager.getAbilityValue(
         CONSTANTS.UNLOCKS.Grass,
         "产量倍率",
         1
       );
       crop.setYieldMultiplier(mul);
-    } else if (type === CROP_TYPE_NAMES.Bush) {
-      const mul = unlockMgr.getAbilityValue(
+    } else if (type === CONSTANTS.CROP_TYPE_NAMES.Bush) {
+      const mul = app.unlockManager.getAbilityValue(
         CONSTANTS.UNLOCKS.Trees,
         "产量倍率",
         1

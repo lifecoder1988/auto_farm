@@ -12,7 +12,7 @@ let codingFeatures = null;
 let CONSTANTS = null;
 
 // 默认动作等待帧数
-const actionWaitFrames = { move: 10, plant: 10, harvest: 10 };
+const actionWaitFrames = { move: 10, plant: 10, harvest: 10, till: 10 };
 
 // 实体执行作用域栈（支持 spawn 嵌套）
 const scopeStack = [];
@@ -111,15 +111,15 @@ async function move(direction, entityId) {
 
 async function plant(type, entityId) {
 
-  if (type == CONSTANTS.CROP_TYPES.Carrots) {
+  if (type == CONSTANTS.CROP_TYPE_NAMES.Carrots) {
     requireFeature(CONSTANTS.UNLOCKS.Carrots);
-  } else if (type == CONSTANTS.CROP_TYPES.Trees) {
+  } else if (type == CONSTANTS.CROP_TYPE_NAMES.Trees) {
     requireFeature(CONSTANTS.UNLOCKS.Trees);
-  } else if (type == CONSTANTS.CROP_TYPES.Pumpkins) {
+  } else if (type == CONSTANTS.CROP_TYPE_NAMES.Pumpkins) {
     requireFeature(CONSTANTS.UNLOCKS.Pumpkins);
-  } else if (type == CONSTANTS.CROP_TYPES.Cactus) {
+  } else if (type == CONSTANTS.CROP_TYPE_NAMES.Cactus) {
     requireFeature(CONSTANTS.UNLOCKS.Cactus);
-  } else if (type == CONSTANTS.CROP_TYPES.Sunflowers) {
+  } else if (type == CONSTANTS.CROP_TYPE_NAMES.Sunflowers) {
     requireFeature(CONSTANTS.UNLOCKS.Sunflowers);
   } else {
     requireFeature(CONSTANTS.UNLOCKS.Plants);
@@ -142,6 +142,16 @@ async function harvest(entityId) {
     key
   );
 }
+
+async function till(entityId) {
+  const id = _resolveEntityId(entityId);
+  return withSlow(
+    () => callMain("till", [id], true),
+    actionWaitFrames.till,
+    id !== undefined ? `E:${id}` : GLOBAL_CHAIN_KEY
+  );
+}
+
 
 async function getWorldSize() {
   return callMain("getWorldSize", [], true);
@@ -335,6 +345,7 @@ function autoAwaitAsyncApi(code) {
     "getTileSize",
     "setSlowMode",
     "createMaze",
+    "till",
   ];
 
   for (const api of apis) {
@@ -463,6 +474,7 @@ async function runUserCode(raw) {
       "getTileSize",
       "setSlowMode",
       "createMaze",
+      "till",
       `
         return (async () => {
           ${code}
@@ -489,7 +501,8 @@ async function runUserCode(raw) {
       setWorldSize,
       getTileSize,
       setSlowMode,
-      createMaze
+      createMaze,
+      till,
     );
 
     send({ type: "complete" });

@@ -36,7 +36,7 @@ export const UNLOCKS = {
 
 };
 
-export const CROP_TYPES = {
+export const CROP_TYPE_NAMES = {
   Cactus: "仙人掌",
   Carrots: "胡萝卜",
   Pumpkins: "南瓜",
@@ -59,7 +59,7 @@ export const CHARACTER_TYPES = {
 
 export default {
   UNLOCKS,
-  CROP_TYPES,
+  CROP_TYPE_NAMES,
   DIRECTIONS,
   CHARACTER_TYPES,
 }

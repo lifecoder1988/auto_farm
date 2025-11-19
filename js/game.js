@@ -1,6 +1,8 @@
 // game.js
 import { initLayers, gridLayer } from "./engine/layers.js";
-import { initSoilLayer } from "./engine/soil.js";
+//import { initSoilLayer } from "./engine/soil.js";
+import { SoilManager } from "./engine/soil/SoilManager.js";
+
 import { drawMapFrame } from "./engine/map.js";
 import { handleWorkerCallFactory } from "./engine/worker-bridge.js";
 
@@ -39,7 +41,7 @@ import CONSTANTS from "./engine/core/constants.js";
 export function initGame() {
   const msg = document.getElementById("msg");
   const inv = document.getElementById("inventory");
- 
+
   const techOverlay = document.getElementById("tech-overlay");
   const techToggleBtn = document.getElementById("toggle-tech");
   const techCloseBtn = document.getElementById("tech-close");
@@ -63,6 +65,7 @@ export function initGame() {
   const customCompleter = {
     getCompletions(editor, session, pos, prefix, callback) {
       const list = [
+        { caption: "till", value: "till()", meta: "game api" },
         {
           caption: "console.log(msg)",
           value: "console.log('hello world')",
@@ -200,7 +203,7 @@ export function initGame() {
     carrot: 1000,
     cactus: 1000,
     sunflower: 1000,
-    
+
   });
   app.inventory.onChange(() => updateInventory());
 
@@ -236,11 +239,21 @@ export function initGame() {
   app.layers = layers;
 
   // 土地层
-  initSoilLayer({
+  /*initSoilLayer({
     mapSize: app.gameState.world.size,
     tileSize: app.gameState.world.tileSize,
     url: "asset/image/soil.png",
     soilLayer: layers.soilLayer,
+  });*/
+  const soilTextures = {
+    normal: PIXI.Texture.from("asset/image/dry.png"),
+    tilled: PIXI.Texture.from("asset/image/soil.png"),
+  };
+  app.soilManager = new SoilManager({
+    mapSize: app.gameState.world.size,
+    tileSize: app.gameState.world.tileSize,
+    soilLayer: app.layers.soilLayer,
+    textures: soilTextures,
   });
 
   // 画网格
@@ -328,14 +341,43 @@ export function initGame() {
     return entityManager.move(direction, getWorldSize(), id);
   }
 
+
+  function till(id) {
+    // 如果没初始化 soilManager 就返回
+    if (!app.soilManager) return;
+
+    const e = entityManager.getEntity(id);
+    if (!e) return;
+    // 将该格变成耕地
+    app.soilManager.till(e.x, e.y);
+
+
+  }
+
   function plant(type, id) {
     const e = entityManager.getEntity(id);
     if (!e) return;
     if (app.mazeManager.isInMaze(e.x, e.y)) return; // 不能在迷宫中种植
-
+    if (app.cropManager.exist(e.x, e.y)) return;
     const existing = app.cropManager.get(e.x, e.y);
     if (existing) return;
 
+    if (CROP_TYPES[type].cost) {
+      const cost = CROP_TYPES[type].cost;
+      for (const item in cost) {
+        const need = cost[item];
+        if (app.inventory.get(item) < need) {
+          console.log(`❌ 材料不足：${item} ${need}`);
+          return; // ❌ 有一个材料不足，直接返回，不扣任何东西
+        }
+      }
+
+      // 2. 所有材料足够，执行扣除
+      for (const item in cost) {
+        const need = cost[item];
+        app.inventory.remove(item, need);
+      }
+    }
     const crop = new Crop({
       type,
       plantedAt: Date.now(),
@@ -565,6 +607,7 @@ export function initGame() {
     setWorldSize,
     createMaze,
     loadCodingFeatures,
+    till,
   });
 
   // =======================
@@ -578,7 +621,7 @@ export function initGame() {
   function abortRun() {
     try {
       worker?.terminate();
-    } catch {}
+    } catch { }
     worker = null;
 
     if (runTimeoutHandle) clearTimeout(runTimeoutHandle);
@@ -625,13 +668,20 @@ export function initGame() {
     }
   }
 
+
   // =======================
   // 动画循环
   // =======================
   function animate() {
+
+
     if (app.gameState.mode === "snake") {
       app.snakeGame.render && app.snakeGame.render();
       return;
+    }
+
+    if (app.soilManager) {
+      app.soilManager.update(app.cropManager);
     }
 
     app.cropManager.updateCrops();

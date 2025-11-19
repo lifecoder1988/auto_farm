@@ -43,7 +43,6 @@ export function renderUnlockPixi(app, TECH_TREE, graphEl) {
 
     graphEl.innerHTML = "";
     graphEl.appendChild(techApp.view);
-
   } else {
     techApp.renderer.resize(graphW, graphH);
   }
@@ -60,10 +59,11 @@ export function renderUnlockPixi(app, TECH_TREE, graphEl) {
   tooltip.addChild(tooltipBg);
 
   const tooltipText = new PIXI.Text("", {
-    fontSize: 16,
+    fontSize: 24,
     fill: "#fff",
     wordWrap: true,
-    wordWrapWidth: 220,
+    wordWrapWidth: 380,
+    breakWords: true,
   });
   tooltip.addChild(tooltipText);
 
@@ -71,32 +71,79 @@ export function renderUnlockPixi(app, TECH_TREE, graphEl) {
   techApp.uiLayer.addChild(tooltip);
 
   function updateTooltip(node, unlockMgr) {
-    const requires = unlockMgr.getCurrentRequires(node);
+    const curLv = unlockMgr.isUnlocked(node.key)
+      ? unlockMgr.getLevel(node.key)
+      : -1;
 
-    if (!requires) {
-      tooltip.visible = false;
-      return;
-    }
+    const maxLv = unlockMgr.getMaxLevel(node);
+
+    const curLevelObj = node.levels[curLv] || null;
+    const nextLevelObj = node.levels[curLv + 1] || null;
+
+    const curAbility = curLevelObj?.ability || null;
+    const nextAbility = nextLevelObj?.ability || null;
+    const requires = nextLevelObj?.requires || null;
 
     let lines = [];
-    lines.push(unlockMgr.isUnlocked(node.key) ? "升级需要：" : "解锁需要：");
 
-    Object.entries(requires).forEach(([item, qty]) => {
-      lines.push(`- ${item}: ${qty}`);
-    });
+    // --- 描述 ---
+    if (node.desc) {
+      lines.push(`【功能介绍】`);
+      lines.push("");
+      lines.push("　　" + node.desc);
+      lines.push("");
+    }
+
+    // --- 当前等级 ---
+    lines.push(`【当前等级】${curLv >= 0 ? curLv+1 : "未解锁"}`);
+
+    // --- 当前效果 ---
+    if (curAbility && curAbility.length > 0) {
+      lines.push("【当前效果】");
+      lines.push("");
+      curAbility.forEach((a) => {
+        lines.push(`  • ${a.name}：${a.value}`);
+      });
+    }
+
+    // --- 升级材料 ---
+    if (requires) {
+      lines.push("");
+      lines.push("【升级需要】");
+      lines.push("");
+      Object.entries(requires).forEach(([item, qty]) => {
+        lines.push(`  • ${item}: ${qty}`);
+      });
+    }
+
+    // --- 升级后效果 ---
+    if (nextAbility && nextAbility.length > 0) {
+      lines.push("");
+      lines.push("【升级后效果】");
+      lines.push("");
+      nextAbility.forEach((a) => {
+        lines.push(`  • ${a.name}：${(a.value * 100).toFixed(0) + "%"}`);
+      });
+    }
+
+    // --- 已满级 ---
+    if (!nextLevelObj) {
+      lines.push("");
+      lines.push("已达最高等级");
+    }
 
     tooltipText.text = lines.join("\n");
 
-    const pad = 10;
+    const pad = 12;
     tooltipBg.clear();
-    tooltipBg.beginFill(0x000000, 0.85);
+    tooltipBg.beginFill(0x000000, 0.88);
     tooltipBg.lineStyle(2, 0xe8d49f);
     tooltipBg.drawRoundedRect(
       -pad,
       -pad,
       tooltipText.width + pad * 2,
       tooltipText.height + pad * 2,
-      6
+      8
     );
     tooltipBg.endFill();
 

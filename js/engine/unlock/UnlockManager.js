@@ -137,4 +137,56 @@ export class UnlockManager {
     }
     return result;
   }
+
+  // =========================
+  //     ⭐ ability 相关工具
+  // =========================
+
+  /**
+   * 返回指定科技当前等级对应的 level 对象
+   * 未解锁则返回 null
+   */
+  getLevelInfo(key) {
+    const node = this.getNode(key);
+    if (!node || !node.levels) return null;
+    if (!this.isUnlocked(key)) return null;
+
+    const lv = this.getLevel(key);
+    return node.levels[lv] || null;
+  }
+
+  /**
+   * 返回指定科技当前等级的 ability 数组
+   * 形如：[{ name, value }, ...]
+   */
+  getAbilityList(key) {
+    const info = this.getLevelInfo(key);
+    return info && Array.isArray(info.ability) ? info.ability : [];
+  }
+
+  /**
+   * 返回指定科技当前等级的 ability 映射：
+   * { [name]: value }
+   */
+  getAbilityMap(key) {
+    const list = this.getAbilityList(key);
+    const map = {};
+    for (const a of list) {
+      if (!a || typeof a.name === "undefined") continue;
+      map[a.name] = a.value;
+    }
+    return map;
+  }
+
+  /**
+   * 获取指定科技的某个 ability 数值
+   * 例如：getAbilityValue("speed", "行动速度倍率", 1)
+   */
+  getAbilityValue(key, abilityName, defaultValue = 0) {
+    const map = this.getAbilityMap(key);
+    if (Object.prototype.hasOwnProperty.call(map, abilityName)) {
+      return map[abilityName];
+    }
+    return defaultValue;
+  }
 }

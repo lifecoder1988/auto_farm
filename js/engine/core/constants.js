@@ -42,7 +42,31 @@ export const CROP_TYPE_NAMES = {
   Pumpkins: "南瓜",
   Sunflowers: "向日葵",
   Trees: "树",
+  Grass: "草",
+  Bush: "灌木丛",
+  
 };
+
+/*potato: 0,
+      peanut: 0,
+      pumpkin: 0,
+      straw: 0,
+      gold : 0,
+      apple:0,
+      hay:0,
+      wood:0,
+      carrot:0,
+      cactus:0,
+      sunflower:0, */
+export const CROP_TYPE_ITEM_MAPPING = {
+  Cactus: "cactus",
+  Carrots: "carrot",
+  Pumpkins: "pumpkin",
+  Sunflowers: "sunflower",
+  Trees: "wood",
+  Grass: "hay",
+  Bush: "wood",
+}
 
 export const DIRECTIONS = {
   Up: "up",
@@ -62,4 +86,5 @@ export default {
   CROP_TYPE_NAMES,
   DIRECTIONS,
   CHARACTER_TYPES,
+  CROP_TYPE_ITEM_MAPPING
 }

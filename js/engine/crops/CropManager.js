@@ -34,7 +34,7 @@ export const CROP_TYPES = {
     renderer: new PumpkinCrop(),
   },
 
-  杂草: {
+  草: {
     time: 0,
     item: "hay",
     renderer: new HayCrop(),
@@ -122,7 +122,7 @@ export class CropManager {
    * @param {number} x 坐标
    * @param {number} y 坐标
    */
-  plantWeed(x, y) {
+  plantWeed(x, y,mul) {
     const key = this.key(x, y);
     if (this.exist(x, y)) {
       console.warn("已种有作物，无法种杂草:", key);
@@ -131,11 +131,13 @@ export class CropManager {
 
 
     const weedCrop = new Crop({
-      type: "杂草",
+      type: "草",
       key: `${x}_${y}`,
       plantedAt: Date.now(),
       matureTime: 0,
     });
+    weedCrop.setYieldMultiplier(mul);
+    
     this.set(weedCrop);
     //CropEventBus.emit("cropPlanted", weedCrop);
   }

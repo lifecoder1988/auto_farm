@@ -42,9 +42,7 @@ export function initGame() {
   const msg = document.getElementById("msg");
   const inv = document.getElementById("inventory");
 
-  const techOverlay = document.getElementById("tech-overlay");
-  const techToggleBtn = document.getElementById("toggle-tech");
-  const techCloseBtn = document.getElementById("tech-close");
+
   const runBtn = document.getElementById("run");
   const timeoutInput = document.getElementById("timeout-ms");
 
@@ -385,6 +383,30 @@ export function initGame() {
       key: `${e.x}_${e.y}`,
     });
 
+
+    
+    if (type === CROP_TYPE_NAMES.Cactus) {
+      const mul = unlockMgr.getAbilityValue(UNLOCKS.Cactus, "产量倍率", 1);
+      crop.setYieldMultiplier(mul);
+    } else if (type === CROP_TYPE_NAMES.Carrots){
+      const mul = unlockMgr.getAbilityValue(UNLOCKS.Carrots, "产量倍率", 1);
+      crop.setYieldMultiplier(mul);
+    } else if(type === CROP_TYPE_NAMES.Pumpkins){
+      const mul = unlockMgr.getAbilityValue(UNLOCKS.Pumpkins, "产量倍率", 1);
+      crop.setYieldMultiplier(mul);
+    } else if (type === CROP_TYPE_NAMES.Sunflowers){
+      console.log("no sunflower mul")
+    } else if (type === CROP_TYPE_NAMES.Trees){
+      const mul = unlockMgr.getAbilityValue(UNLOCKS.Trees, "产量倍率", 1);
+      crop.setYieldMultiplier(mul);
+    } else if (type === CROP_TYPE_NAMES.Grass){
+      const mul = unlockMgr.getAbilityValue(UNLOCKS.Grass, "产量倍率", 1);
+      crop.setYieldMultiplier(mul);
+    } else if (type === CROP_TYPE_NAMES.Bush){
+      const mul = unlockMgr.getAbilityValue(UNLOCKS.Trees, "产量倍率", 1);
+      crop.setYieldMultiplier(mul);
+    }
+
     app.cropManager.set(crop);
   }
 
@@ -417,7 +439,8 @@ export function initGame() {
 
     if (!area) {
       // ======== 普通单格收割 ========
-      const qty = itemKey === "pumpkin" ? 1 + bonus : 1;
+      const qty = crop.finalYield
+      console.log("qty", qty);
       app.inventory.add(itemKey, qty);
       app.cropManager.delete(e.x, e.y);
 
@@ -437,15 +460,14 @@ export function initGame() {
         const c = app.cropManager.get(cx, cy);
         if (!c) continue;
 
-        total++;
+        total += c.finalYield;
         app.cropManager.delete(cx, cy);
       }
     }
 
     if (total > 0) {
-      const qty = itemKey === "pumpkin" ? total * (1 + bonus) : total;
 
-      app.inventory.add(itemKey, qty);
+      app.inventory.add(itemKey, total);
     }
     CropEventBus.broadcast("crop:harvest:merged");
   }
@@ -681,7 +703,7 @@ export function initGame() {
     }
 
     if (app.soilManager) {
-      app.soilManager.update(app.cropManager);
+      app.soilManager.update(app.cropManager,app.unlockManager);
     }
 
     app.cropManager.updateCrops();

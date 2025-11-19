@@ -97,7 +97,7 @@ export class SoilManager {
    * @param {number} dt 这一帧经过的毫秒数
    * @param {CropManager} cropManager 用来查询/种杂草
    */
-  update( cropManager) {
+  update( cropManager,unlockManager) {
     this._weedTimer += 100;
     // 比如每 500ms 扫一遍，避免每帧都 O(n^2) 太重
     if (this._weedTimer < 500) return;
@@ -116,7 +116,8 @@ export class SoilManager {
 
         // 随机概率长出杂草（可自己调大小）
         if (Math.random() < 0.9) { // 90% 概率
-          cropManager.plantWeed(x, y); // 你在 CropManager 里实现这个方法
+          const mul = unlockManager.getAbilityValue(UNLOCKS.Grass, "产量倍率", 1);
+          cropManager.plantWeed(x, y,mul); // 你在 CropManager 里实现这个方法
         }
       }
     }

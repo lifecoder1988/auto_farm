@@ -10,5 +10,5 @@ export class HayCrop extends CropBase {
     });
   }
 
-  get type() { return '杂草'; }
+  get type() { return '草'; }
 }

@@ -197,12 +197,11 @@ export function initGame() {
 
   // ⭐ Inventory（背包）
   app.inventory = new Inventory({
-  
     pumpkin: 0,
     gold: 0,
     apple: 0,
-    hay: 50,
-    wood: 50,
+    hay: 10000,
+    wood: 10000,
     carrot: 0,
     cactus: 0,
     sunflower: 0,

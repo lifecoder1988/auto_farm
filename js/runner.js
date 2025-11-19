@@ -12,7 +12,14 @@ let codingFeatures = null;
 let CONSTANTS = null;
 
 // 默认动作等待帧数
-const actionWaitFrames = { move: 10, plant: 10, harvest: 10, till: 10 ,useWater: 10, useFertilizer: 10};
+const actionWaitFrames = {
+  move: 10,
+  plant: 10,
+  harvest: 10,
+  till: 10,
+  useWater: 10,
+  useFertilizer: 10,
+};
 
 // 实体执行作用域栈（支持 spawn 嵌套）
 const scopeStack = [];
@@ -77,7 +84,7 @@ const userConsole = {
         })
       );
       send({ type: "log", args: resolved });
-    } catch (_) { }
+    } catch (_) {}
   },
 };
 
@@ -91,7 +98,6 @@ function _resolveEntityId(entityId) {
 }
 
 async function createMaze(size, entityId) {
-
   requireFeature("costs");
 
   const id = _resolveEntityId(entityId);
@@ -106,15 +112,10 @@ async function move(direction, entityId) {
 
   const speed = codingFeatures?.["speed"] || 1;
   const wait = Math.round(actionWaitFrames.move / speed);
-  return withSlow(
-    () => callMain("move", [direction, id], true),
-    wait ,
-    key
-  );
+  return withSlow(() => callMain("move", [direction, id], true), wait, key);
 }
 
 async function plant(type, entityId) {
-
   if (type == CONSTANTS.CROP_TYPE_NAMES.Carrots) {
     requireFeature(CONSTANTS.UNLOCKS.Carrots);
   } else if (type == CONSTANTS.CROP_TYPE_NAMES.Trees) {
@@ -176,8 +177,6 @@ async function useFertilizer(entityId) {
   );
 }
 
-
-
 async function getWorldSize() {
   return callMain("getWorldSize", [], true);
 }
@@ -206,7 +205,7 @@ async function loadCodingFeatures() {
 
 function requireFeature(feature) {
   if (!codingFeatures?.[feature]) {
-    throw new Error(`${feature} 功能尚未解锁`);
+    throw new Error(`${CONSTANTS.UNLOCKS_NAME_ZH[feature]} 功能尚未解锁`);
   }
 }
 
@@ -214,9 +213,9 @@ function delay(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-function random(){
+function random() {
   requireFeature(CONSTANTS.UNLOCKS.Utilities);
-  return Math.random()
+  return Math.random();
 }
 // ===================== getEntity / getPlayer =====================
 
@@ -230,7 +229,6 @@ async function getEntity(id) {
 }
 
 async function getPosition(id) {
-
   requireFeature(CONSTANTS.UNLOCKS.Senses);
 
   const e = await getEntity(id);
@@ -253,7 +251,6 @@ async function doAFlip(entityId) {
 // ===================== changeCharacter（新增，支持蛇形别名） =====================
 
 async function changeCharacter(characterType, entityId) {
-
   if (characterType == CONSTANTS.CHARACTER_TYPES.snake) {
     requireFeature(CONSTANTS.UNLOCKS.Snake);
   } else if (characterType == CONSTANTS.CHARACTER_TYPES.dino) {
@@ -262,8 +259,6 @@ async function changeCharacter(characterType, entityId) {
   const id = _resolveEntityId(entityId);
   return callMain("changeCharacter", [characterType, id], true);
 }
-
-
 
 // ===================== spawn（核心，支持用户参数） =====================
 
@@ -327,7 +322,8 @@ function transformSpawn(code) {
   c = c.replace(
     /spawn\s*\(\s*async\s*function(\s+\w+)?\s*\(\s*\)\s*\{/g,
     (m, n) =>
-      `spawn(async function${n || ""
+      `spawn(async function${
+        n || ""
       }({ move, plant, harvest, canHarvest, getEntity, delay, id }){`
   );
   c = c.replace(
@@ -343,7 +339,8 @@ function transformSpawn(code) {
   c = c.replace(
     /spawn\s*\(\s*function(\s+\w+)?\s*\(\s*\)\s*\{/g,
     (m, n) =>
-      `spawn(async function${n || ""
+      `spawn(async function${
+        n || ""
       }({ move, plant, harvest, canHarvest, getEntity, delay, id }){`
   );
 
@@ -511,6 +508,7 @@ async function runUserCode(raw) {
       "useWater",
       "useFertilizer",
       "random",
+     
       `
         return (async () => {
           ${code}
@@ -542,6 +540,7 @@ async function runUserCode(raw) {
       useWater,
       useFertilizer,
       random,
+      
     );
 
     send({ type: "complete" });
@@ -564,5 +563,8 @@ onmessage = (e) => {
       pending.delete(data.reqId);
       resolver(data.result);
     }
-  } else if (data.type === 'init_constants') { CONSTANTS = data.constants; return; }
+  } else if (data.type === "init_constants") {
+    CONSTANTS = data.constants;
+    return;
+  }
 };

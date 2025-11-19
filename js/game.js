@@ -34,6 +34,8 @@ import {
 import { CropEventBus } from "./engine/crops/CropEventBus.js";
 import { CropDebugRenderer } from "./engine/crops/CropDebugRenderer.js";
 
+import CONSTANTS from "./engine/core/constants.js";
+
 export function initGame() {
   const msg = document.getElementById("msg");
   const inv = document.getElementById("inventory");
@@ -593,7 +595,7 @@ export function initGame() {
 
     if (worker) worker.terminate();
     worker = new Worker("./js/runner.js");
-
+    worker.postMessage({ type: 'init_constants', constants: CONSTANTS });
     worker.onmessage = (e) => {
       const data = e.data;
       if (!data) return;

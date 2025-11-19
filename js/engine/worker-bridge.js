@@ -135,7 +135,6 @@ export function handleWorkerCallFactory(ctx) {
       // ==========================
       // ⭐ 换角色：drone/dino/snake
       // ==========================
-      case 'change_character':
       case 'changeCharacter': {
         changeCharacter(args?.[0], args?.[1]);
         respond(true);
@@ -145,8 +144,7 @@ export function handleWorkerCallFactory(ctx) {
       // ==========================
       // ⭐ do a flip
       // ==========================
-      case 'doAFlip':
-      case 'do_a_flip': {
+      case 'doAFlip': {
         const e = getEntity(args?.[0]);
         if (e) e.flashUntil = Date.now() + 1000;
         respond(true);

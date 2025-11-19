@@ -9,6 +9,7 @@ let slowMode = true;
 const chains = new Map();
 const GLOBAL_CHAIN_KEY = "GLOBAL";
 let codingFeatures = null;
+let CONSTANTS = null;
 
 // 默认动作等待帧数
 const actionWaitFrames = { move: 10, plant: 10, harvest: 10 };
@@ -76,7 +77,7 @@ const userConsole = {
         })
       );
       send({ type: "log", args: resolved });
-    } catch (_) {}
+    } catch (_) { }
   },
 };
 
@@ -90,6 +91,9 @@ function _resolveEntityId(entityId) {
 }
 
 async function createMaze(size, entityId) {
+
+  requireFeature("costs");
+
   const id = _resolveEntityId(entityId);
   const key = id !== undefined ? `E:${id}` : GLOBAL_CHAIN_KEY;
   return withSlow(() => callMain("createMaze", [size, id], true), 1, key);
@@ -106,6 +110,20 @@ async function move(direction, entityId) {
 }
 
 async function plant(type, entityId) {
+
+  if (type == CONSTANTS.CROP_TYPES.Carrots) {
+    requireFeature(CONSTANTS.UNLOCKS.Carrots);
+  } else if (type == CONSTANTS.CROP_TYPES.Trees) {
+    requireFeature(CONSTANTS.UNLOCKS.Trees);
+  } else if (type == CONSTANTS.CROP_TYPES.Pumpkins) {
+    requireFeature(CONSTANTS.UNLOCKS.Pumpkins);
+  } else if (type == CONSTANTS.CROP_TYPES.Cactus) {
+    requireFeature(CONSTANTS.UNLOCKS.Cactus);
+  } else if (type == CONSTANTS.CROP_TYPES.Sunflowers) {
+    requireFeature(CONSTANTS.UNLOCKS.Sunflowers);
+  } else {
+    requireFeature(CONSTANTS.UNLOCKS.Plants);
+  }
   const id = _resolveEntityId(entityId);
   const key = id !== undefined ? `E:${id}` : GLOBAL_CHAIN_KEY;
   return withSlow(
@@ -151,6 +169,12 @@ async function loadCodingFeatures() {
   codingFeatures = await callMain("loadCodingFeatures", [], true);
 }
 
+function requireFeature(feature) {
+  if (!codingFeatures?.[feature]) {
+    throw new Error(`${feature} 功能尚未解锁`);
+  }
+}
+
 function delay(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
@@ -167,6 +191,9 @@ async function getEntity(id) {
 }
 
 async function getPosition(id) {
+
+  requireFeature(CONSTANTS.UNLOCKS.Senses);
+
   const e = await getEntity(id);
   if (!e) return { id: undefined, x: undefined, y: undefined };
   return { id: e.id, x: e.x, y: e.y };
@@ -187,14 +214,17 @@ async function doAFlip(entityId) {
 // ===================== changeCharacter（新增，支持蛇形别名） =====================
 
 async function changeCharacter(characterType, entityId) {
+
+  if (characterType == CONSTANTS.CHARACTER_TYPES.snake) {
+    requireFeature(CONSTANTS.UNLOCKS.Snake);
+  } else if (characterType == CONSTANTS.CHARACTER_TYPES.dino) {
+    requireFeature(CONSTANTS.UNLOCKS.Dino);
+  }
   const id = _resolveEntityId(entityId);
   return callMain("changeCharacter", [characterType, id], true);
 }
 
-const change_character = async (characterType, entityId) => {
-  const id = _resolveEntityId(entityId);
-  return callMain("change_character", [characterType, id], true);
-};
+
 
 // ===================== spawn（核心，支持用户参数） =====================
 
@@ -257,8 +287,7 @@ function transformSpawn(code) {
   c = c.replace(
     /spawn\s*\(\s*async\s*function(\s+\w+)?\s*\(\s*\)\s*\{/g,
     (m, n) =>
-      `spawn(async function${
-        n || ""
+      `spawn(async function${n || ""
       }({ move, plant, harvest, canHarvest, getEntity, delay, id }){`
   );
   c = c.replace(
@@ -274,8 +303,7 @@ function transformSpawn(code) {
   c = c.replace(
     /spawn\s*\(\s*function(\s+\w+)?\s*\(\s*\)\s*\{/g,
     (m, n) =>
-      `spawn(async function${
-        n || ""
+      `spawn(async function${n || ""
       }({ move, plant, harvest, canHarvest, getEntity, delay, id }){`
   );
 
@@ -300,7 +328,6 @@ function autoAwaitAsyncApi(code) {
     "waitFrame",
     "doAFlip",
     "changeCharacter",
-    "change_character",
     "getEntity",
     "getPosition",
     "getWorldSize",
@@ -429,7 +456,6 @@ async function runUserCode(raw) {
       "getPosition",
       "doAFlip",
       "changeCharacter",
-      "change_character",
       "delay",
       "waitFrame",
       "getWorldSize",
@@ -457,7 +483,6 @@ async function runUserCode(raw) {
       getPosition,
       doAFlip,
       changeCharacter,
-      change_character,
       delay,
       waitFrame,
       getWorldSize,
@@ -487,5 +512,5 @@ onmessage = (e) => {
       pending.delete(data.reqId);
       resolver(data.result);
     }
-  }
+  } else if (data.type === 'init_constants') { CONSTANTS = data.constants; return; }
 };

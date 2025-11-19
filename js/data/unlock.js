@@ -197,8 +197,8 @@ export const TECH_TREE = [
    * Hats
    * -----------------------------------------------------*/
   {
-    key: "hats",
-    name: "帽子",
+    key: "dino",
+    name: "小恐龙",
     tier: 1,
     deps: ["loops"],
     levels: [

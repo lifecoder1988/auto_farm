@@ -100,11 +100,15 @@ async function createMaze(size, entityId) {
 }
 
 async function move(direction, entityId) {
+  console.log("move", codingFeatures?.["speed"]);
   const id = _resolveEntityId(entityId);
   const key = id !== undefined ? `E:${id}` : GLOBAL_CHAIN_KEY;
+
+  const speed = codingFeatures?.["speed"] || 1;
+  const wait = Math.round(actionWaitFrames.move / speed);
   return withSlow(
     () => callMain("move", [direction, id], true),
-    actionWaitFrames.move,
+    wait ,
     key
   );
 }

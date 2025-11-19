@@ -714,27 +714,27 @@ export const TECH_TREE = [
       {
         level: 0,
         requires: { hay: 20 },
-        ability: [{ name: "行动速度倍率", value: 1.0 }],
+        ability: [{ name: "速度倍率", value: 1.0 }],
       },
       {
         level: 1,
         requires: { wood: 20 },
-        ability: [{ name: "行动速度倍率", value: 1.3 }],
+        ability: [{ name: "速度倍率", value: 1.3 }],
       },
       {
         level: 2,
         requires: { wood: 50, carrot: 50 },
-        ability: [{ name: "行动速度倍率", value: 1.6 }],
+        ability: [{ name: "速度倍率", value: 1.6 }],
       },
       {
         level: 3,
         requires: { carrot: 500 },
-        ability: [{ name: "行动速度倍率", value: 2.0 }],
+        ability: [{ name: "速度倍率", value: 2.0 }],
       },
       {
         level: 4,
         requires: { carrot: 1000 },
-        ability: [{ name: "行动速度倍率", value: 2.5 }],
+        ability: [{ name: "速度倍率", value: 2.5 }],
       },
     ],
   },

@@ -27,6 +27,8 @@ export class UnlockManager {
       result[node.key] = this.isUnlocked(node.key);
     }
 
+    result["speed"] = this.getAbilityValue("speed", "速度倍率", 1);
+
     return result;
   }
   /** 最大等级 */

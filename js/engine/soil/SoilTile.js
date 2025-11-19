@@ -20,6 +20,10 @@ export class SoilTile {
     this.updatedAt = Date.now();
   }
 
+  setType(type) {
+    this.type = type;
+    this.updatedAt = Date.now();
+  }
   reset() {
     this.type = "normal";
     this.updatedAt = Date.now();

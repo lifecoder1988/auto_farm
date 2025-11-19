@@ -1,206 +1,196 @@
 // engine/worker-bridge.js
 
 export function handleWorkerCallFactory(ctx) {
-  const {
-    move, plant, harvest, canHarvest, spawn, despawn, setActive,
-    getEntity, getPlayer,
-    pendingFrameReqs,
-    getWorldSize,
-    getTileSize,
-    setWorldSize,
-    changeCharacter,
-    app,
-    msg,
-    createMaze,
-    loadCodingFeatures,
-    till,
-    useWater,
-    useFertilizer,
-  } = ctx;
+  // ctx = app（Proxy）
+  const api = ctx.api || {};              // move/plant/harvest 等 API
+  const pendingFrameReqs = ctx.pendingFrameReqs;
+
+  const getEntity = ctx.getEntity?.bind(ctx);
+  const getPlayer = ctx.getPlayer?.bind(ctx);
+
+  const getWorldSize = ctx.getWorldSize?.bind(ctx);
+  const getTileSize = ctx.getTileSize?.bind(ctx);
+  const setWorldSize = ctx.setWorldSize?.bind(ctx);
+  const changeCharacter = ctx.changeCharacter?.bind(ctx);
+  const createMaze = ctx.createMaze?.bind(ctx);
+  const loadCodingFeatures = ctx.loadCodingFeatures?.bind(ctx);
+
+  const till = ctx.till?.bind(ctx);
+  const useWater = ctx.useWater?.bind(ctx);
+  const useFertilizer = ctx.useFertilizer?.bind(ctx);
+
+  const app = ctx;        // 保留兼容
+  const msg = ctx.msg;
 
   return function handleWorkerCall(data, worker) {
     const { name, args, reqId } = data;
 
     function respond(result) {
       if (reqId != null && worker) {
-        worker.postMessage({ type: 'response', reqId, result });
+        worker.postMessage({ type: "response", reqId, result });
       }
     }
 
-    // ==========================
-    // ⭐ Snake 模式下特殊处理
-    // ==========================
-    if (app.gameState.mode === 'snake') {
-      if (name === 'move') {
+    // ====================================================
+    // ⭐ Snake 模式（特殊处理）
+    // ====================================================
+    if (app.gameState.mode === "snake") {
+      if (name === "move") {
         app.snakeGame.step(args[0]);
         respond(true);
         return;
       }
-      if(name === 'changeCharacter'){
-        changeCharacter(args?.[0], args?.[1]);
+
+      if (name === "changeCharacter") {
+        changeCharacter?.(args?.[0], args?.[1]);
         respond(true);
         return;
       }
-      if(name === 'loadCodingFeatures'){
-        const features = loadCodingFeatures();
+
+      if (name === "loadCodingFeatures") {
+        const features = loadCodingFeatures?.();
         respond(features);
         return;
       }
-      // 其它指令在 snake 模式下无效
+
       respond(null);
       return;
     }
 
-    // ==========================
-    // ⭐ 农场模式：主指令分发
-    // ==========================
+    // ====================================================
+    // ⭐ 农场模式主指令：优先从 api 查找
+    // ====================================================
+    if (api[name]) {
+      const result = api[name](...(args ?? []));
+      respond(result);
+      return;
+    }
+
+    // ====================================================
+    // ⭐ 农场模式具体指令分发（保持你原有逻辑）
+    // ====================================================
     switch (name) {
-
-      case 'move': {
-        move(args[0], args[1]);
-        const e = getEntity(args?.[1]);
-        respond({ id: e.id, x: e.x, y: e.y });
+      case "move": {
+        api.move?.(args[0], args[1]);
+        const e = getEntity?.(args?.[1]);
+        respond(e ? { id: e.id, x: e.x, y: e.y } : null);
         return;
       }
 
-      case 'plant': {
-        plant(args[0], args[1]);
+      case "plant":
+      case "harvest":
+      case "till":
+      case "useWater":
+      case "useFertilizer": {
+        api[name]?.(args[0], args[1]);
         respond(true);
         return;
       }
 
-      case 'till': {
-        till(args[0]);
-        respond(true);
-        return;
-      }
-      case 'useWater': {
-        useWater(args[0]);
-        respond(true);
-        return;
-      }
-      case 'useFertilizer': {
-        useFertilizer(args[0]);
-        respond(true);
+      case "canHarvest": {
+        const r = api.canHarvest?.(args?.[0]);
+        respond(!!r);
         return;
       }
 
-      case 'harvest': {
-        harvest(args[0]);
-        respond(true);
-        return;
-      }
-
-      case 'canHarvest': {
-        respond(!!canHarvest(args?.[0]));
-        return;
-      }
-
-      case 'spawn': {
-        const id = spawn();
+      case "spawn": {
+        const id = api.spawn?.();
         respond(id);
         return;
       }
 
-      case 'despawn': {
-        despawn(args?.[0]);
+      case "despawn":
+      case "setActive": {
+        api[name]?.(args?.[0]);
         respond(true);
         return;
       }
 
-      case 'setActive': {
-        setActive(args?.[0]);
-        respond(true);
+      case "getPlayer": {
+        respond(getPlayer?.());
         return;
       }
 
-      case 'getPlayer': {
-        respond(getPlayer());
+      case "getEntity": {
+        respond(getEntity?.(args?.[0]));
         return;
       }
 
-      case 'getEntity': {
-        respond(getEntity(args?.[0]));
-        return;
-      }
-
-      // ==========================
-      // ⭐ 帧等待：worker 等一帧
-      // ==========================
-      case 'waitFrame': {
+      // --------------------
+      // ⭐ worker waitFrame
+      // --------------------
+      case "waitFrame": {
         if (reqId != null) pendingFrameReqs.push(reqId);
         return;
       }
-      case 'loadCodingFeatures': {
-        const features = loadCodingFeatures();
+
+      case "loadCodingFeatures": {
+        const features = loadCodingFeatures?.();
         respond(features);
         return;
       }
-      
 
-      // ==========================
+      // --------------------
       // ⭐ 换帽子
-      // ==========================
-      case 'change_hat':
-      case 'changeHat': {
-        const hatKey = args?.[0];
-        const id = args?.[1];
-        const e = getEntity(id);
-        if (e) e.hat = typeof hatKey === 'string' ? hatKey : 'Straw_Hat';
+      // --------------------
+      case "change_hat":
+      case "changeHat": {
+        const [hatKey, id] = args || [];
+        const e = getEntity?.(id);
+        if (e) e.hat = typeof hatKey === "string" ? hatKey : "Straw_Hat";
         respond(true);
         return;
       }
 
-      // ==========================
-      // ⭐ 换角色：drone/dino/snake
-      // ==========================
-      case 'changeCharacter': {
-        changeCharacter(args?.[0], args?.[1]);
+      // --------------------
+      // ⭐ 换角色 drone/dino/snake
+      // --------------------
+      case "changeCharacter": {
+        changeCharacter?.(args?.[0], args?.[1]);
         respond(true);
         return;
       }
 
-      // ==========================
+      // --------------------
       // ⭐ do a flip
-      // ==========================
-      case 'doAFlip': {
-        const e = getEntity(args?.[0]);
+      // --------------------
+      case "doAFlip": {
+        const e = getEntity?.(args?.[0]);
         if (e) e.flashUntil = Date.now() + 1000;
         respond(true);
         return;
       }
 
-      // ==========================
-      // ⭐ 科技：是否已解锁
-      // ==========================
-      case 'isUnlocked': {
+      // --------------------
+      // ⭐ 科技解锁检测
+      // --------------------
+      case "isUnlocked": {
         const key = args?.[0];
         respond(app.unlockManager.isUnlocked(key));
         return;
       }
 
-      // ==========================
+      // --------------------
       // ⭐ 世界尺寸 / tileSize
-      // ==========================
-      case 'getWorldSize': {
-        respond(getWorldSize());
+      // --------------------
+      case "getWorldSize":
+        respond(getWorldSize?.());
         return;
-      }
 
-      case 'setWorldSize': {
-        setWorldSize(args?.[0]);
+      case "setWorldSize":
+        setWorldSize?.(args?.[0]);
         respond(true);
         return;
-      }
 
-      case 'getTileSize': {
-        respond(getTileSize());
+      case "getTileSize":
+        respond(getTileSize?.());
         return;
-      }
-      case 'createMaze': {
-        const size = args && args[0];
-        const entityId = args && args[1];   // 脚本上下文里的 entity id
-        createMaze(size, entityId);
+
+      // --------------------
+      // ⭐ 迷宫指令
+      // --------------------
+      case "createMaze": {
+        createMaze?.(args?.[0], args?.[1]);
         respond(true);
         return;
       }

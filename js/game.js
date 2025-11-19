@@ -197,18 +197,16 @@ export function initGame() {
 
   // ⭐ Inventory（背包）
   app.inventory = new Inventory({
-    potato: 1000,
-    peanut: 1000,
-    pumpkin: 10000,
-    straw: 1000,
+  
+    pumpkin: 0,
     gold: 0,
     apple: 0,
-    hay: 1000,
-    wood: 1000,
-    carrot: 1000,
-    cactus: 1000,
-    sunflower: 1000,
-    water: 1000,
+    hay: 50,
+    wood: 50,
+    carrot: 0,
+    cactus: 0,
+    sunflower: 0,
+    water: 0,
     fertilizer: 0,
   });
   app.inventory.onChange(() => updateInventory());

@@ -24,7 +24,7 @@ import { Maze } from "./engine/maze/Maze.js";
 import { MazeManager } from "./engine/maze/MazeManager.js";
 import { renderAllMazes } from "./engine/maze/renderMaze.js";
 
-import { DEFAULT_CODE } from './data/default_code.js';
+import { DEFAULT_CODE } from "./data/default_code.js";
 
 import { appendLog } from "./ui/console.js";
 
@@ -42,9 +42,11 @@ export function initGame() {
   const msg = document.getElementById("msg");
   const inv = document.getElementById("inventory");
 
-
   const runBtn = document.getElementById("run");
   const timeoutInput = document.getElementById("timeout-ms");
+
+  let lastTickTime = performance.now();
+  let accumulated = 0;
 
   msg.textContent = "已就绪 ✅";
 
@@ -64,12 +66,18 @@ export function initGame() {
     getCompletions(editor, session, pos, prefix, callback) {
       const list = [
         { caption: "till", value: "till()", meta: "game api" },
+        { caption: "useWater", value: "useWater()", meta: "game api" },
+        {
+          caption: "useFertilizer",
+          value: "useFertilizer()",
+          meta: "game api",
+        },
+
         {
           caption: "console.log(msg)",
           value: "console.log('hello world')",
           meta: "game api",
-          docHTML:
-            "<b>console.log(msg)</b><br/>打印消息到控制台。",
+          docHTML: "<b>console.log(msg)</b><br/>打印消息到控制台。",
         },
         {
           caption: "move(dir)",
@@ -175,7 +183,6 @@ export function initGame() {
     app.cropDebug.drawSquares(squares);
   });
 
-
   // ⭐ GameState（核心）
   app.gameState = new GameState({
     worldSize: 3,
@@ -192,7 +199,7 @@ export function initGame() {
   app.inventory = new Inventory({
     potato: 1000,
     peanut: 1000,
-    pumpkin: 1000,
+    pumpkin: 10000,
     straw: 1000,
     gold: 0,
     apple: 0,
@@ -201,7 +208,8 @@ export function initGame() {
     carrot: 1000,
     cactus: 1000,
     sunflower: 1000,
-
+    water: 1000,
+    fertilizer: 0,
   });
   app.inventory.onChange(() => updateInventory());
 
@@ -298,16 +306,27 @@ export function initGame() {
   }
 
   function setWorldSize(size) {
+    const expandSize = app.unlockManager.getAbilityValue(
+      CONSTANTS.UNLOCKS.Expand,
+      "世界尺寸",
+      3
+    );
+    if (size < 3) {
+      appendLog(["世界尺寸不能小于 3"], "system");
+      return;
+    }
+    if (size > expandSize) {
+      appendLog([`世界尺寸不能超过 ${expandSize}`], "system");
+      return;
+    }
     app.gameState.setWorldSize(size, app.view.width);
     rebuildWorld();
   }
 
-
-
   function updateInventory() {
     const t = app.inventory.getAll();
     console.log(t);
-    inv.textContent = `🎒 背包: 草料(${t.hay}) 木材(${t.wood}) 胡萝卜(${t.carrot})  南瓜(${t.pumpkin})  仙人掌(${t.cactus}) 金币(${t.gold}) 苹果(${t.apple}) 向日葵(${t.sunflower})`;
+    inv.textContent = `🎒 背包: 草料(${t.hay}) 木材(${t.wood}) 胡萝卜(${t.carrot})  南瓜(${t.pumpkin})  仙人掌(${t.cactus}) 金币(${t.gold}) 苹果(${t.apple}) 向日葵(${t.sunflower}) 水(${t.water}) 肥料(${t.fertilizer})`;
   }
 
   // =======================
@@ -339,7 +358,6 @@ export function initGame() {
     return entityManager.move(direction, getWorldSize(), id);
   }
 
-
   function till(id) {
     // 如果没初始化 soilManager 就返回
     if (!app.soilManager) return;
@@ -348,8 +366,28 @@ export function initGame() {
     if (!e) return;
     // 将该格变成耕地
     app.soilManager.till(e.x, e.y);
+  }
 
+  function useWater(id) {
+    const e = entityManager.getEntity(id);
+    if (!e) return;
+    if (app.inventory.get("water") < 1) {
+      console.log("❌ 水不足");
+      return; // ❌ 水不足，直接返回，不扣任何东西
+    }
+    app.inventory.remove("water", 1);
+    app.soilManager.addWater(e.x, e.y);
+  }
 
+  function useFertilizer(id) {
+    const e = entityManager.getEntity(id);
+    if (!e) return;
+    if (app.inventory.get("fertilizer") < 1) {
+      console.log("❌ 肥料不足");
+      return; // ❌ 肥料不足，直接返回，不扣任何东西
+    }
+    app.inventory.remove("fertilizer", 1);
+    app.cropManager.applyFertilizer(e.x, e.y);
   }
 
   function plant(type, id) {
@@ -376,34 +414,62 @@ export function initGame() {
         app.inventory.remove(item, need);
       }
     }
+
+    let matureTime = CROP_TYPES[type]?.time || 0;
+    if (!app.soilManager.gridIsWet(e.x, e.y)) {
+      matureTime *= 1.5;
+    }
+
     const crop = new Crop({
       type,
       plantedAt: Date.now(),
-      matureTime: CROP_TYPES[type]?.time || 0,
+      matureTime: matureTime,
       key: `${e.x}_${e.y}`,
     });
 
-
-    
     if (type === CROP_TYPE_NAMES.Cactus) {
-      const mul = unlockMgr.getAbilityValue(CONSTANTS.UNLOCKS.Cactus, "产量倍率", 1);
+      const mul = unlockMgr.getAbilityValue(
+        CONSTANTS.UNLOCKS.Cactus,
+        "产量倍率",
+        1
+      );
       crop.setYieldMultiplier(mul);
-    } else if (type === CROP_TYPE_NAMES.Carrots){
-      const mul = unlockMgr.getAbilityValue(CONSTANTS.UNLOCKS.Carrots, "产量倍率", 1);
+    } else if (type === CROP_TYPE_NAMES.Carrots) {
+      const mul = unlockMgr.getAbilityValue(
+        CONSTANTS.UNLOCKS.Carrots,
+        "产量倍率",
+        1
+      );
       crop.setYieldMultiplier(mul);
-    } else if(type === CROP_TYPE_NAMES.Pumpkins){
-      const mul = unlockMgr.getAbilityValue(CONSTANTS.UNLOCKS.Pumpkins, "产量倍率", 1);
+    } else if (type === CROP_TYPE_NAMES.Pumpkins) {
+      const mul = unlockMgr.getAbilityValue(
+        CONSTANTS.UNLOCKS.Pumpkins,
+        "产量倍率",
+        1
+      );
       crop.setYieldMultiplier(mul);
-    } else if (type === CROP_TYPE_NAMES.Sunflowers){
-      console.log("no sunflower mul")
-    } else if (type === CROP_TYPE_NAMES.Trees){
-      const mul = unlockMgr.getAbilityValue(CONSTANTS.UNLOCKS.Trees, "产量倍率", 1);
+    } else if (type === CROP_TYPE_NAMES.Sunflowers) {
+      console.log("no sunflower mul");
+    } else if (type === CROP_TYPE_NAMES.Trees) {
+      const mul = unlockMgr.getAbilityValue(
+        CONSTANTS.UNLOCKS.Trees,
+        "产量倍率",
+        1
+      );
       crop.setYieldMultiplier(mul);
-    } else if (type === CROP_TYPE_NAMES.Grass){
-      const mul = unlockMgr.getAbilityValue(CONSTANTS.UNLOCKS.Grass, "产量倍率", 1);
+    } else if (type === CROP_TYPE_NAMES.Grass) {
+      const mul = unlockMgr.getAbilityValue(
+        CONSTANTS.UNLOCKS.Grass,
+        "产量倍率",
+        1
+      );
       crop.setYieldMultiplier(mul);
-    } else if (type === CROP_TYPE_NAMES.Bush){
-      const mul = unlockMgr.getAbilityValue(CONSTANTS.UNLOCKS.Trees, "产量倍率", 1);
+    } else if (type === CROP_TYPE_NAMES.Bush) {
+      const mul = unlockMgr.getAbilityValue(
+        CONSTANTS.UNLOCKS.Trees,
+        "产量倍率",
+        1
+      );
       crop.setYieldMultiplier(mul);
     }
 
@@ -439,7 +505,7 @@ export function initGame() {
 
     if (!area) {
       // ======== 普通单格收割 ========
-      const qty = crop.finalYield
+      const qty = crop.finalYield;
       console.log("qty", qty);
       app.inventory.add(itemKey, qty);
       app.cropManager.delete(e.x, e.y);
@@ -466,7 +532,6 @@ export function initGame() {
     }
 
     if (total > 0) {
-
       app.inventory.add(itemKey, total);
     }
     CropEventBus.broadcast("crop:harvest:merged");
@@ -497,18 +562,12 @@ export function initGame() {
     app.cropManager.updateConfig(size, tile);
 
     gridLayer.clear();
-    layers.soilLayer.removeChildren();
     layers.cropsLayer.removeChildren();
     layers.entitiesLayer.removeChildren();
 
     drawGrid();
 
-    initSoilLayer({
-      mapSize: size,
-      tileSize: tile,
-      url: "asset/image/soil.png",
-      soilLayer: layers.soilLayer,
-    });
+    app.soilManager.resetLayer(size, tile);
 
     app.characterManager.clear();
     app.characterManager.update(entityManager.getAll(), size, tile);
@@ -587,7 +646,6 @@ export function initGame() {
     e.type = nextType;
   }
 
-
   function loadCodingFeatures() {
     return app.unlockManager.loadCodingFeatures();
   }
@@ -630,6 +688,8 @@ export function initGame() {
     createMaze,
     loadCodingFeatures,
     till,
+    useWater,
+    useFertilizer,
   });
 
   // =======================
@@ -643,7 +703,7 @@ export function initGame() {
   function abortRun() {
     try {
       worker?.terminate();
-    } catch { }
+    } catch {}
     worker = null;
 
     if (runTimeoutHandle) clearTimeout(runTimeoutHandle);
@@ -660,7 +720,7 @@ export function initGame() {
 
     if (worker) worker.terminate();
     worker = new Worker("./js/runner.js");
-    worker.postMessage({ type: 'init_constants', constants: CONSTANTS });
+    worker.postMessage({ type: "init_constants", constants: CONSTANTS });
     worker.onmessage = (e) => {
       const data = e.data;
       if (!data) return;
@@ -690,12 +750,31 @@ export function initGame() {
     }
   }
 
-
   // =======================
   // 动画循环
   // =======================
   function animate() {
+    const now = performance.now();
+    const dt = now - lastTickTime;
+    lastTickTime = now;
+    accumulated += dt;
 
+    if (accumulated >= 1000) {
+      accumulated -= 1000;
+
+      // 每秒自动加水
+      const value = app.unlockManager.getAbilityValue(
+        CONSTANTS.UNLOCKS.Watering,
+        "水资源每秒产出",
+        0
+      );
+      app.inventory.add("water", value);
+
+      //每秒自动加肥料
+      if (app.unlockManager.isUnlocked(CONSTANTS.UNLOCKS.Fertilizer)) {
+        app.inventory.add("fertilizer", 1);
+      }
+    }
 
     if (app.gameState.mode === "snake") {
       app.snakeGame.render && app.snakeGame.render();
@@ -703,8 +782,12 @@ export function initGame() {
     }
 
     if (app.soilManager) {
-      const mul = app.unlockManager.getAbilityValue(CONSTANTS.UNLOCKS.Grass, "产量倍率", 1);
-      app.soilManager.update(app.cropManager,{mul});
+      const mul = app.unlockManager.getAbilityValue(
+        CONSTANTS.UNLOCKS.Grass,
+        "产量倍率",
+        1
+      );
+      app.soilManager.update(app.cropManager, { mul });
     }
 
     app.cropManager.updateCrops();

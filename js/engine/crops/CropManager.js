@@ -11,9 +11,7 @@ import { CactusCrop } from "./CactusCrop.js";
 import { SunFlowerCrop } from "./SunFlowerCrop.js";
 import { Crop } from "./Crop.js";
 
-
 import { CropEventBus } from "./CropEventBus.js";
-
 
 export const CROP_TYPES = {
   土豆: {
@@ -48,7 +46,7 @@ export const CROP_TYPES = {
     time: 0,
     item: "carrot",
     renderer: new CarrotCrop(),
-    cost: { hay: 512, wood: 512 }
+    cost: { hay: 512, wood: 512 },
   },
   树: {
     time: 0,
@@ -59,24 +57,21 @@ export const CROP_TYPES = {
     time: 0,
     item: "cactus",
     renderer: new CactusCrop(),
-    cost: { pumpkin: 64 }
+    cost: { pumpkin: 64 },
   },
   向日葵: {
     time: 0,
     item: "sunflower",
     renderer: new SunFlowerCrop(),
-    cost: { carrot: 1 }
+    cost: { carrot: 1 },
   },
 };
-
-
 
 export class CropManager {
   constructor() {
     // key: "x_y" → { sprite, frameIdx }
     this.cropSprites = new Map();
     this.crops = {};
-
   }
 
   applyMergeArea({ x, y, n }) {
@@ -117,18 +112,25 @@ export class CropManager {
     this.crops = {};
   }
 
+  applyFertilizer(x, y, ms = 2000) {
+    const crop = this.get(x, y);
+    if (!crop) return false;
+
+    crop.applyFertilizer(ms);
+    return true;  
+  }
+
   /**
    * 种杂草
    * @param {number} x 坐标
    * @param {number} y 坐标
    */
-  plantWeed(x, y,mul) {
+  plantWeed(x, y, mul) {
     const key = this.key(x, y);
     if (this.exist(x, y)) {
       console.warn("已种有作物，无法种杂草:", key);
       return;
     }
-
 
     const weedCrop = new Crop({
       type: "草",
@@ -137,12 +139,10 @@ export class CropManager {
       matureTime: 0,
     });
     weedCrop.setYieldMultiplier(mul);
-    
+
     this.set(weedCrop);
     //CropEventBus.emit("cropPlanted", weedCrop);
   }
-
-
 
   updateCrops() {
     for (const key in this.crops) {

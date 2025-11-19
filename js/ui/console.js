@@ -1,4 +1,4 @@
-export function appendLog(args) {
+export function appendLog(args,source="user") {
   const consoleOut = document.getElementById("console-output");
 
   const line = document.createElement("div");
@@ -8,11 +8,23 @@ export function appendLog(args) {
   time.className = "log-time";
   time.textContent = `[${getTimestamp()}]`;
 
+
+  const from = document.createElement("span");
+  from.className = "log-from";
+  if (source === "user") {
+    from.textContent = "[用户]";
+    from.style.color = "#4caf50";
+  } else if (source === "system") {
+    from.textContent = "[系统]";
+    from.style.color = "#03a9f4";
+  } 
+
   const body = document.createElement("pre");
   body.className = "log-body";
   body.textContent = args.map((a) => formatValue(a)).join(" ");
 
   line.appendChild(time);
+  line.appendChild(from);
   line.appendChild(body);
 
   consoleOut.appendChild(line);

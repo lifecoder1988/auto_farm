@@ -14,11 +14,22 @@ export class Crop {
     this._lastMature = false;
     this.onMature = null; // 单作物回调（可选）
     this.mergeArea = null;
+    this.fertilizerReduction = 0;
   }
 
+  applyFertilizer(ms = 2000) {
+    this.fertilizerReduction += ms;
+  }
   get progress() {
-    const p = (Date.now() - this.plantedAt) / this.matureTime;
-    return Math.min(p, 1);
+    // 减少的时间不能超过 matureTime * 0.5 （限制最低时间）
+    const effectiveMatureTime = Math.max(
+      this.matureTime * 0.5,
+      this.matureTime - this.fertilizerReduction
+    );
+
+    const elapsed = Date.now() - this.plantedAt;
+
+    return Math.min(elapsed / effectiveMatureTime, 1);
   }
 
   get isMature() {

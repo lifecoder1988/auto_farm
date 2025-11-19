@@ -12,7 +12,7 @@ let codingFeatures = null;
 let CONSTANTS = null;
 
 // 默认动作等待帧数
-const actionWaitFrames = { move: 10, plant: 10, harvest: 10, till: 10 };
+const actionWaitFrames = { move: 10, plant: 10, harvest: 10, till: 10 ,useWater: 10, useFertilizer: 10};
 
 // 实体执行作用域栈（支持 spawn 嵌套）
 const scopeStack = [];
@@ -126,7 +126,7 @@ async function plant(type, entityId) {
   } else if (type == CONSTANTS.CROP_TYPE_NAMES.Sunflowers) {
     requireFeature(CONSTANTS.UNLOCKS.Sunflowers);
   } else {
-    requireFeature(CONSTANTS.UNLOCKS.Plants);
+    requireFeature(CONSTANTS.UNLOCKS.Plant);
   }
   const id = _resolveEntityId(entityId);
   const key = id !== undefined ? `E:${id}` : GLOBAL_CHAIN_KEY;
@@ -155,6 +155,27 @@ async function till(entityId) {
     id !== undefined ? `E:${id}` : GLOBAL_CHAIN_KEY
   );
 }
+
+async function useWater(entityId) {
+  requireFeature(CONSTANTS.UNLOCKS.Watering);
+  const id = _resolveEntityId(entityId);
+  return withSlow(
+    () => callMain("useWater", [id], true),
+    actionWaitFrames.useWater,
+    id !== undefined ? `E:${id}` : GLOBAL_CHAIN_KEY
+  );
+}
+
+async function useFertilizer(entityId) {
+  requireFeature(CONSTANTS.UNLOCKS.Fertilizer);
+  const id = _resolveEntityId(entityId);
+  return withSlow(
+    () => callMain("useFertilizer", [id], true),
+    actionWaitFrames.useFertilizer,
+    id !== undefined ? `E:${id}` : GLOBAL_CHAIN_KEY
+  );
+}
+
 
 
 async function getWorldSize() {
@@ -193,6 +214,10 @@ function delay(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+function random(){
+  requireFeature(CONSTANTS.UNLOCKS.Utilities);
+  return Math.random()
+}
 // ===================== getEntity / getPlayer =====================
 
 async function getPlayer() {
@@ -257,6 +282,7 @@ async function spawn(fn, ...userArgs) {
       getEntity: () => callMain("getEntity", [id], true),
       delay,
       createMaze: (n) => createMaze(n, id),
+      console: userConsole,
     };
 
     try {
@@ -350,6 +376,9 @@ function autoAwaitAsyncApi(code) {
     "setSlowMode",
     "createMaze",
     "till",
+    "useWater",
+    "useFertilizer",
+    "random",
   ];
 
   for (const api of apis) {
@@ -479,6 +508,9 @@ async function runUserCode(raw) {
       "setSlowMode",
       "createMaze",
       "till",
+      "useWater",
+      "useFertilizer",
+      "random",
       `
         return (async () => {
           ${code}
@@ -507,6 +539,9 @@ async function runUserCode(raw) {
       setSlowMode,
       createMaze,
       till,
+      useWater,
+      useFertilizer,
+      random,
     );
 
     send({ type: "complete" });

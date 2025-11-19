@@ -14,6 +14,8 @@ export function handleWorkerCallFactory(ctx) {
     createMaze,
     loadCodingFeatures,
     till,
+    useWater,
+    useFertilizer,
   } = ctx;
 
   return function handleWorkerCall(data, worker) {
@@ -69,6 +71,16 @@ export function handleWorkerCallFactory(ctx) {
 
       case 'till': {
         till(args[0]);
+        respond(true);
+        return;
+      }
+      case 'useWater': {
+        useWater(args[0]);
+        respond(true);
+        return;
+      }
+      case 'useFertilizer': {
+        useFertilizer(args[0]);
         respond(true);
         return;
       }

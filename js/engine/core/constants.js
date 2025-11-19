@@ -19,7 +19,7 @@ export const UNLOCKS = {
   Mazes: "mazes",
   Megafarm: "megafarm",
   Operators: "operators",
-  Plants: "plants",
+  Plant: "plant",
   Polyculture: "polyculture",
   Pumpkins: "pumpkins",
   Senses: "senses",

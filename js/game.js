@@ -386,24 +386,24 @@ export function initGame() {
 
     
     if (type === CROP_TYPE_NAMES.Cactus) {
-      const mul = unlockMgr.getAbilityValue(UNLOCKS.Cactus, "产量倍率", 1);
+      const mul = unlockMgr.getAbilityValue(CONSTANTS.UNLOCKS.Cactus, "产量倍率", 1);
       crop.setYieldMultiplier(mul);
     } else if (type === CROP_TYPE_NAMES.Carrots){
-      const mul = unlockMgr.getAbilityValue(UNLOCKS.Carrots, "产量倍率", 1);
+      const mul = unlockMgr.getAbilityValue(CONSTANTS.UNLOCKS.Carrots, "产量倍率", 1);
       crop.setYieldMultiplier(mul);
     } else if(type === CROP_TYPE_NAMES.Pumpkins){
-      const mul = unlockMgr.getAbilityValue(UNLOCKS.Pumpkins, "产量倍率", 1);
+      const mul = unlockMgr.getAbilityValue(CONSTANTS.UNLOCKS.Pumpkins, "产量倍率", 1);
       crop.setYieldMultiplier(mul);
     } else if (type === CROP_TYPE_NAMES.Sunflowers){
       console.log("no sunflower mul")
     } else if (type === CROP_TYPE_NAMES.Trees){
-      const mul = unlockMgr.getAbilityValue(UNLOCKS.Trees, "产量倍率", 1);
+      const mul = unlockMgr.getAbilityValue(CONSTANTS.UNLOCKS.Trees, "产量倍率", 1);
       crop.setYieldMultiplier(mul);
     } else if (type === CROP_TYPE_NAMES.Grass){
-      const mul = unlockMgr.getAbilityValue(UNLOCKS.Grass, "产量倍率", 1);
+      const mul = unlockMgr.getAbilityValue(CONSTANTS.UNLOCKS.Grass, "产量倍率", 1);
       crop.setYieldMultiplier(mul);
     } else if (type === CROP_TYPE_NAMES.Bush){
-      const mul = unlockMgr.getAbilityValue(UNLOCKS.Trees, "产量倍率", 1);
+      const mul = unlockMgr.getAbilityValue(CONSTANTS.UNLOCKS.Trees, "产量倍率", 1);
       crop.setYieldMultiplier(mul);
     }
 
@@ -703,7 +703,8 @@ export function initGame() {
     }
 
     if (app.soilManager) {
-      app.soilManager.update(app.cropManager,app.unlockManager);
+      const mul = app.unlockManager.getAbilityValue(CONSTANTS.UNLOCKS.Grass, "产量倍率", 1);
+      app.soilManager.update(app.cropManager,{mul});
     }
 
     app.cropManager.updateCrops();

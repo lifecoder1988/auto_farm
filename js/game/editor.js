@@ -36,6 +36,7 @@ function setupCustomCompletions() {
         { caption: "getGroundType", value: "getGroundType()", meta: "game api" },
         { caption: "canHarvest", value: "canHarvest()", meta: "game api" },
         { caption: "canMove", value: "canMove()", meta: "game api" },
+        { caption: "clear", value: "clear()", meta: "game api" },
 
         {
           caption: "console.log(msg)",

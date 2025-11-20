@@ -100,6 +100,12 @@ export function handleWorkerCallFactory(ctx) {
         return;
       }
 
+      case "clear": {
+        api.clear?.(args?.[0]);
+        respond(true);
+        return;
+      }
+
       case "spawn": {
         const id = api.spawn?.();
         respond(id);

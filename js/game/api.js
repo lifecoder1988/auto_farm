@@ -177,6 +177,9 @@ export function createGameAPI(app) {
     return true 
   }
 
+  function clear(id) {
+    app.resetGame();
+  }
   // =====================================================
   // 收获
   // =====================================================
@@ -299,6 +302,7 @@ export function createGameAPI(app) {
     createMaze,
     loadCodingFeatures,
     getGroundType,
-    canMove
+    canMove,
+    clear,
   };
 }

@@ -202,6 +202,11 @@ async function canMove(direction,entityId) {
   return callMain("canMove", [direction, id], true);
 }
 
+async function clear(entityId) {
+  const id = _resolveEntityId(entityId);
+  return callMain("clear", [id], true);
+}
+
 async function waitFrame() {
   await callMain("waitFrame", [], true);
 }
@@ -298,6 +303,7 @@ async function spawn(fn, ...userArgs) {
       createMaze: (n) => createMaze(n, id),
       console: userConsole,
       canMove: (d) => canMove(d, id),
+      clear: () => clear(id),
     };
 
     try {
@@ -398,6 +404,7 @@ function autoAwaitAsyncApi(code) {
     "random",
     "abs",
     "canMove",
+    "clear",
   ];
 
   for (const api of apis) {
@@ -532,6 +539,7 @@ async function runUserCode(raw) {
       "random",
       "abs",
       "canMove",
+      "clear",
      
       `
         return (async () => {
@@ -566,6 +574,7 @@ async function runUserCode(raw) {
       random,
       abs,
       canMove,
+      clear,
     );
 
     send({ type: "complete" });

@@ -166,6 +166,17 @@ export function createGameAPI(app) {
     return Date.now() - crop.plantedAt >= crop.matureTime;
   }
 
+  function canMove(direction,id) {
+    // d "up" "down" "left" "right"
+    const e = entityManager.getEntity(id);
+    if (!e) return false;
+    const maze = mazeManager.isInMaze(e.x, e.y);
+    if (maze){
+        if (!maze.canMove(e.x, e.y, direction)) return false;
+    }
+    return true 
+  }
+
   // =====================================================
   // 收获
   // =====================================================
@@ -288,5 +299,6 @@ export function createGameAPI(app) {
     createMaze,
     loadCodingFeatures,
     getGroundType,
+    canMove
   };
 }

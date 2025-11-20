@@ -197,6 +197,11 @@ async function canHarvest(entityId) {
   return callMain("canHarvest", [id], true);
 }
 
+async function canMove(direction,entityId) {
+  const id = _resolveEntityId(entityId);
+  return callMain("canMove", [direction, id], true);
+}
+
 async function waitFrame() {
   await callMain("waitFrame", [], true);
 }
@@ -292,6 +297,7 @@ async function spawn(fn, ...userArgs) {
       delay,
       createMaze: (n) => createMaze(n, id),
       console: userConsole,
+      canMove: (d) => canMove(d, id),
     };
 
     try {
@@ -391,6 +397,7 @@ function autoAwaitAsyncApi(code) {
     "useFertilizer",
     "random",
     "abs",
+    "canMove",
   ];
 
   for (const api of apis) {
@@ -524,6 +531,7 @@ async function runUserCode(raw) {
       "useFertilizer",
       "random",
       "abs",
+      "canMove",
      
       `
         return (async () => {
@@ -557,7 +565,7 @@ async function runUserCode(raw) {
       useFertilizer,
       random,
       abs,
-      
+      canMove,
     );
 
     send({ type: "complete" });

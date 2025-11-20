@@ -94,6 +94,12 @@ export function handleWorkerCallFactory(ctx) {
         return;
       }
 
+      case "canMove": {
+        const r = api.canMove?.(args?.[0], args?.[1]);
+        respond(!!r);
+        return;
+      }
+
       case "spawn": {
         const id = api.spawn?.();
         respond(id);

@@ -1,7 +1,7 @@
 // js/game/ui.js
 
 import { initUnlockUI } from "../engine/unlock/unlock-ui.js";
-import { appendLog } from "../ui/console.js";
+import { appendLog, appendSystemLog } from "../ui/console.js";
 
 /**
  * 初始化 UI（按钮、消息、背包显示、科技树 UI、超时时间、控制台）
@@ -79,7 +79,7 @@ export function setupUI(app) {
   //（appendLog 已经处理 scroll）
   // ==========================
   app.appendLog = appendLog;
-
+  app.appendSystemLog = appendSystemLog;
   // 显示 UI 就绪
   msg.textContent = "已就绪 ✅";
 }

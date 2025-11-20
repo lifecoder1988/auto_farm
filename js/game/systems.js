@@ -27,13 +27,13 @@ export function setupSystems(app, saveData = null) {
   // Inventory 背包
   // ============================
   const defaultInv = {
-    pumpkin: 0,
+    pumpkin: 10000,
     gold: 0,
     apple: 0,
     hay: 10000,
     wood: 10000,
-    carrot: 0,
-    cactus: 0,
+    carrot: 10000,
+    cactus: 10000,
     sunflower: 0,
     water: 0,
     fertilizer: 0,
@@ -50,8 +50,8 @@ export function setupSystems(app, saveData = null) {
 
   // 存档恢复实体
   if (saveData?.player) {
-    entityManager.entities = saveData.player.entities;
-    entityManager.activeId = saveData.player.activeId ?? 0;
+    entityManager.fromPlain(saveData.player.entities);
+   
   }
 
   app.entityManager = entityManager;

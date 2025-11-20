@@ -1,8 +1,8 @@
 // js/game/api.js
 
-import CONSTANTS from "../engine/core/constants.js";
 import { CROP_TYPES } from "../engine/crops/CropManager.js";
 import {Crop} from "../engine/crops/Crop.js";
+
 /**
  * 构建所有游戏 API（供 worker 与 UI 调用）
  */
@@ -13,7 +13,7 @@ export function createGameAPI(app) {
   const mazeManager = app.mazeManager;
   const unlock = app.unlockManager;
   const inventory = app.inventory;
-
+  const appendSystemLog = app.appendSystemLog;
   // =====================================================
   // 工具：世界信息
   // =====================================================
@@ -101,6 +101,7 @@ export function createGameAPI(app) {
 
     if (inventory.get("fertilizer") < 1) {
       console.log("❌ 肥料不足");
+      appendSystemLog("❌ 肥料不足");
       return;
     }
     inventory.remove("fertilizer", 1);
@@ -123,6 +124,7 @@ export function createGameAPI(app) {
         const need = CROP_TYPES[type].cost[item];
         if (inventory.get(item) < need) {
           console.log(`❌ 材料不足：${item} ${need}`);
+          appendSystemLog(`❌ 材料不足：${item} ${need}`);
           return;
         }
       }

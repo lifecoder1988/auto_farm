@@ -219,6 +219,11 @@ function random() {
   requireFeature(CONSTANTS.UNLOCKS.Utilities);
   return Math.random();
 }
+
+function abs(x) {
+  requireFeature(CONSTANTS.UNLOCKS.Utilities);
+  return Math.abs(x);
+}
 // ===================== getEntity / getPlayer =====================
 
 async function getPlayer() {
@@ -385,6 +390,7 @@ function autoAwaitAsyncApi(code) {
     "useWater",
     "useFertilizer",
     "random",
+    "abs",
   ];
 
   for (const api of apis) {
@@ -517,6 +523,7 @@ async function runUserCode(raw) {
       "useWater",
       "useFertilizer",
       "random",
+      "abs",
      
       `
         return (async () => {
@@ -549,6 +556,7 @@ async function runUserCode(raw) {
       useWater,
       useFertilizer,
       random,
+      abs,
       
     );
 

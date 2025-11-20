@@ -31,6 +31,10 @@ export function appendLog(args,source="user") {
   consoleOut.scrollTop = consoleOut.scrollHeight;
 }
 
+export function appendSystemLog(args) {
+  appendLog(args, "system");
+}
+
 function getTimestamp() {
   const d = new Date();
   return (

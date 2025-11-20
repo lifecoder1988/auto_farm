@@ -34,6 +34,7 @@ function setupCustomCompletions() {
         { caption: "useWater", value: "useWater()", meta: "game api" },
         { caption: "useFertilizer", value: "useFertilizer()", meta: "game api" },
         { caption: "getGroundType", value: "getGroundType()", meta: "game api" },
+        { caption: "canHarvest", value: "canHarvest()", meta: "game api" },
         {
           caption: "console.log(msg)",
           value: "console.log('hello world')",

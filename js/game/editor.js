@@ -32,6 +32,7 @@ function setupCustomCompletions() {
       const list = [
         { caption: "till", value: "till()", meta: "game api" },
         { caption: "useWater", value: "useWater()", meta: "game api" },
+        { caption: "getWater", value: "getWater()", meta: "game api" },
         { caption: "useFertilizer", value: "useFertilizer()", meta: "game api" },
         { caption: "getGroundType", value: "getGroundType()", meta: "game api" },
         { caption: "getCropType", value: "getCropType()", meta: "game api" },

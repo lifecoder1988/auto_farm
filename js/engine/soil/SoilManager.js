@@ -162,6 +162,13 @@ export class SoilManager {
     return true;
   }
 
+  /** 获取格子水分 */
+  getWater(x, y) {
+    const tile = this.grid?.[y]?.[x];
+    if (!tile) return 0;
+    return tile.waterLevel;
+  }
+
   // ---------------------------
   //   杂草系统（仅 soil 生成）
   // ---------------------------

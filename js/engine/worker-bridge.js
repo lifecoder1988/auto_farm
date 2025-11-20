@@ -17,6 +17,8 @@ export function handleWorkerCallFactory(ctx) {
 
   const till = ctx.till?.bind(ctx);
   const useWater = ctx.useWater?.bind(ctx);
+  const getWater = ctx.getWater?.bind(ctx);
+
   const useFertilizer = ctx.useFertilizer?.bind(ctx);
   const getGroundType = ctx.getGroundType?.bind(ctx);
   const getCropType = ctx.getCropType?.bind(ctx);
@@ -92,6 +94,12 @@ export function handleWorkerCallFactory(ctx) {
       case "canHarvest": {
         const r = api.canHarvest?.(args?.[0]);
         respond(!!r);
+        return;
+      }
+
+      case "getWater": {
+        const r = getWater?.(args?.[0]);
+        respond(r);
         return;
       }
 

@@ -98,6 +98,12 @@ export function createGameAPI(app) {
     soil.addWater(e.x, e.y);
   }
 
+  function getWater(id) {
+    const e = entityManager.getEntity(id);
+    if (!e) return;
+    return soil.getWater(e.x, e.y);
+  }
+
   // =====================================================
   // 施肥
   // =====================================================
@@ -300,6 +306,7 @@ export function createGameAPI(app) {
     setActive,
     till,
     useWater,
+    getWater,
     useFertilizer,
     changeCharacter,
     getWorldSize,
@@ -311,5 +318,6 @@ export function createGameAPI(app) {
     getCropType,
     canMove,
     clear,
+
   };
 }

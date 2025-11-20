@@ -169,6 +169,12 @@ async function useWater(entityId) {
   );
 }
 
+async function getWater(entityId) {
+  requireFeature(CONSTANTS.UNLOCKS.Senses);
+  const id = _resolveEntityId(entityId);
+  return callMain("getWater", [id], true);
+}
+
 async function useFertilizer(entityId) {
   requireFeature(CONSTANTS.UNLOCKS.Fertilizer);
   const id = _resolveEntityId(entityId);
@@ -405,6 +411,7 @@ function autoAwaitAsyncApi(code) {
     "createMaze",
     "till",
     "useWater",
+    "getWater",
     "useFertilizer",
     "random",
     "abs",
@@ -540,6 +547,7 @@ async function runUserCode(raw) {
       "createMaze",
       "till",
       "useWater",
+      "getWater",
       "useFertilizer",
       "random",
       "abs",
@@ -575,6 +583,7 @@ async function runUserCode(raw) {
       createMaze,
       till,
       useWater,
+      getWater,
       useFertilizer,
       random,
       abs,

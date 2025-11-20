@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>游戏文档浏览器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- marked -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+      :root {
+        --bg: #111;
+        --sidebar: #181818;
+        --panel: #1f1f1f;
+        --ink: #eee;
+        --accent: #4caf50;
+        --border: #333;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        height: 100vh;
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      /* 左侧目录 */
+      #sidebar {
+        background: var(--sidebar);
+        border-right: 1px solid var(--border);
+        padding: 12px 10px;
+        overflow-y: auto;
+      }
+
+      #sidebar h1 {
+        font-size: 18px;
+        margin: 0 0 10px;
+      }
+
+      .nav-section-title {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin: 12px 0 4px;
+        color: #aaa;
+      }
+
+      .nav-list {
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+      }
+
+      .nav-item {
+        margin: 2px 0;
+      }
+
+      .nav-link {
+        display: block;
+        padding: 4px 6px;
+        border-radius: 4px;
+        font-size: 14px;
+        text-decoration: none;
+        color: var(--ink);
+        cursor: pointer;
+      }
+
+      .nav-link:hover {
+        background: #2a2a2a;
+      }
+
+      .nav-link.active {
+        background: var(--accent);
+        color: #000;
+      }
+
+      .nav-children {
+        list-style: none;
+        padding-left: 14px;
+        margin: 2px 0 0;
+      }
+
+      /* 右侧内容区 */
+      #main {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        background: var(--bg);
+      }
+
+      #top-bar {
+        padding: 8px 16px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #121212;
+      }
+
+      #doc-title {
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      #toc {
+        font-size: 13px;
+        max-width: 60%;
+        text-align: right;
+      }
+
+      #toc a {
+        color: #bbb;
+        text-decoration: none;
+      }
+
+      #toc a:hover {
+        color: var(--accent);
+      }
+
+      #toc ul {
+        list-style: none;
+        padding-left: 0;
+        margin: 0;
+      }
+
+      #toc li {
+        display: inline-block;
+        margin-left: 10px;
+      }
+
+      #content-wrap {
+        overflow-y: auto;
+        padding: 16px 24px 40px;
+      }
+
+      #content {
+        max-width: 920px;
+        margin: 0 auto;
+        line-height: 1.6;
+        font-size: 15px;
+      }
+
+      /* Markdown 内容样式（简单版） */
+      #content h1,
+      #content h2,
+      #content h3,
+      #content h4 {
+        margin-top: 1.8em;
+        margin-bottom: 0.6em;
+        font-weight: 600;
+      }
+
+      #content h1 {
+        font-size: 26px;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.4em;
+      }
+
+      #content h2 {
+        font-size: 22px;
+      }
+
+      #content h3 {
+        font-size: 18px;
+      }
+
+      #content p {
+        margin: 0.4em 0 0.6em;
+      }
+
+      #content code {
+        font-family: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        background: #222;
+        padding: 2px 4px;
+        border-radius: 3px;
+        font-size: 0.9em;
+      }
+
+      #content pre {
+        background: #151515;
+        border-radius: 6px;
+        padding: 10px 12px;
+        overflow-x: auto;
+      }
+
+      #content pre code {
+        background: transparent;
+        padding: 0;
+      }
+
+      #content a {
+        color: var(--accent);
+      }
+
+      #content table {
+        border-collapse: collapse;
+        border: 1px solid var(--border);
+        width: 100%;
+        margin: 1em 0;
+      }
+
+      #content th,
+      #content td {
+        border: 1px solid var(--border);
+        padding: 6px 8px;
+      }
+
+      #content blockquote {
+        margin: 0.6em 0;
+        padding-left: 10px;
+        border-left: 3px solid var(--accent);
+        color: #aaa;
+      }
+    </style>
+  </head>
+  <body>
+    <aside id="sidebar">
+      <h1>游戏文档</h1>
+      <div id="nav-root"></div>
+    </aside>
+
+    <section id="main">
+      <div id="top-bar">
+        <div id="doc-title">加载中...</div>
+        <nav id="toc"></nav>
+      </div>
+      <div id="content-wrap">
+        <article id="content">正在加载文档...</article>
+      </div>
+    </section>
+
+    <script type="module">
+      // ======== 1. 文档目录配置（改成你的真实文件结构） ========
+
+      let DOCS = [];
+
+      async function initDocs() {
+        const res = await fetch("docs.json");
+        DOCS = await res.json();
+        buildNav();
+        const first = findFirstDoc(DOCS);
+        if (first) {
+          const link = document.querySelector(
+            `.nav-link[data-doc-path="${first.path}"]`
+          );
+          if (link) setActiveLink(link);
+          loadDoc(first.path, first.title);
+        }
+      }
+
+      // ======== 2. 构建左侧导航 ========
+
+      const navRoot = document.getElementById("nav-root");
+      const docTitleEl = document.getElementById("doc-title");
+      const tocEl = document.getElementById("toc");
+      const contentEl = document.getElementById("content");
+
+      function buildNav() {
+        navRoot.innerHTML = "";
+        const ul = document.createElement("ul");
+        ul.className = "nav-list";
+        DOCS.forEach((node) => {
+          ul.appendChild(createNavNode(node));
+        });
+        navRoot.appendChild(ul);
+      }
+
+      function createNavNode(node) {
+        const li = document.createElement("li");
+        li.className = "nav-item";
+
+        if (node.path) {
+          const a = document.createElement("a");
+          a.className = "nav-link";
+          a.textContent = node.title;
+          a.href = "#";
+
+          a.dataset.docPath = node.path;
+          a.dataset.docTitle = node.title;
+
+          a.addEventListener("click", (e) => {
+            e.preventDefault();
+            loadDoc(node.path, node.title);
+            setActiveLink(a);
+          });
+
+          li.appendChild(a);
+        } else {
+          // 只是一个分组
+          const span = document.createElement("div");
+          span.className = "nav-section-title";
+          span.textContent = node.title;
+          li.appendChild(span);
+        }
+
+        if (node.children && node.children.length) {
+          const ul = document.createElement("ul");
+          ul.className = "nav-children";
+          node.children.forEach((child) => {
+            ul.appendChild(createNavNode(child));
+          });
+          li.appendChild(ul);
+        }
+
+        return li;
+      }
+
+      function setActiveLink(activeEl) {
+        document
+          .querySelectorAll(".nav-link")
+          .forEach((el) => el.classList.remove("active"));
+        if (activeEl) activeEl.classList.add("active");
+      }
+
+      // ======== 3. 加载 Markdown + 生成 TOC ========
+
+      async function loadDoc(path, titleFromNav) {
+        try {
+          docTitleEl.textContent = titleFromNav || path;
+          tocEl.innerHTML = "目录生成中...";
+          contentEl.textContent = "加载中...";
+
+          const res = await fetch(path);
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          const md = await res.text();
+
+          // 收集标题生成 TOC
+          const headings = [];
+          const renderer = new marked.Renderer();
+          renderer.heading = function (text, level, raw, slugger) {
+            const slug = slugger.slug(raw);
+            headings.push({ text, level, slug });
+            return `<h${level} id="${slug}">${text}</h${level}>`;
+          };
+
+          const html = marked.parse(md, { renderer });
+          contentEl.innerHTML = html;
+          tocEl.innerHTML = buildTOCHtml(headings);
+
+          // 滚动到顶部
+          document.getElementById("content-wrap").scrollTop = 0;
+        } catch (err) {
+          contentEl.innerHTML =
+            "<p>加载文档失败：" + (err.message || String(err)) + "</p>";
+          tocEl.innerHTML = "";
+        }
+      }
+
+      function buildTOCHtml(headings) {
+        if (!headings.length) return "";
+
+        // 只用 h1/h2/h3 做简易 TOC
+        const filtered = headings.filter((h) => h.level <= 3);
+
+        return (
+          "<ul>" +
+          filtered
+            .map(
+              (h) => `
+            <li style="margin-left:${(h.level - 1) * 14}px">
+              <a href="#${h.slug}">${h.text}</a>
+            </li>
+          `
+            )
+            .join("") +
+          "</ul>"
+        );
+      }
+
+      // ======== 4. 找到第一个有 path 的文档作为默认 ========
+
+      function findFirstDoc(nodes) {
+        for (const n of nodes) {
+          if (n.path) return n;
+          if (n.children) {
+            const found = findFirstDoc(n.children);
+            if (found) return found;
+          }
+        }
+        return null;
+      }
+
+      // ======== 5. 初始化 ========
+
+      buildNav();
+
+      const defaultDoc = findFirstDoc(DOCS);
+      if (defaultDoc) {
+        // 自动选中第一个文档
+        const link = document.querySelector(
+          `.nav-link[data-doc-path="${defaultDoc.path}"]`
+        );
+        if (link) {
+          setActiveLink(link);
+        }
+        loadDoc(defaultDoc.path, defaultDoc.title);
+      } else {
+        contentEl.textContent = "没有配置任何文档。";
+      }
+       initDocs();
+    </script>
+
+   
+  </body>
+</html>

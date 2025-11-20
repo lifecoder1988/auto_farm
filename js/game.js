@@ -21,6 +21,7 @@ import { setupReset } from "./game/reset.js";
 
 import { saveSlotData, loadSlotMetaList, saveSlotMetaList } from "./ui/save-ui.js";
 
+import { renderAllMazes } from "./engine/maze/renderMaze.js";
 
 export function initGame({ saveData, slotId, slotName }) {
   // ---- app 使用 Proxy 封装 ----
@@ -66,12 +67,15 @@ export function initGame({ saveData, slotId, slotName }) {
   app.drawGrid = () => drawGrid(app);
   app.rebuildWorld = () => rebuildWorld(app);
   app.setWorldSize = (size) => setWorldSize(app, size);
-
+  
   app.collectSaveData = () => collectSaveData(app);
   app.restoreGameState = (data) => restoreGameState(app, data);
 
   app.getEntity = (id) => ({ ...app.entityManager.getEntity(id) });
   app.getPlayer = () => ({ ...app.entityManager.getActive() });
+  app.renderAllMazes = () => {
+    renderAllMazes(app)
+  }
 
   setupRunner(app);
   setupLoop(app);

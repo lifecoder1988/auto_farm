@@ -98,7 +98,7 @@ function _resolveEntityId(entityId) {
 }
 
 async function createMaze(size, entityId) {
-  requireFeature("costs");
+  requireFeature("mazes");
 
   const id = _resolveEntityId(entityId);
   const key = id !== undefined ? `E:${id}` : GLOBAL_CHAIN_KEY;

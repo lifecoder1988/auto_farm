@@ -299,6 +299,7 @@ export function createGameAPI(app) {
     const e = entityManager.getEntity(id);
     if (!e) return;
     mazeManager.createMaze(e.x, e.y, size);
+    app.renderAllMazes(); // 只画一次
   }
 
   // =====================================================

@@ -78,8 +78,8 @@ export class MazeManager {
             
             for (let y = sy; y < sy + n; y++) {
                 for (let x = sx; x < sx + n; x++) {
-                    const key = `${x}_${y}`;
                     this.app.cropManager.delete(x, y);
+                    this.app.soilManager.makeSoil(x, y);
                 }
             }
             console.log(maze)

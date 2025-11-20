@@ -1,56 +1,62 @@
 // engine/soil/SoilTile.js
 
 export class SoilTile {
-  constructor(type = "normal") {
-    this.type = type;                 // "normal" | "tilled"
+  constructor(type = "soil") {
+    this.type = type;            // "soil" | "grass"
     this.updatedAt = Date.now();
 
-    this.waterLevel = 0;              // ⭐ 土地含水量：0 - 1
+    this.waterLevel = 0;         // ⭐ 0 ~ 1
   }
 
   // ----------------
-  //   土地类型相关
+  //   类型判断
   // ----------------
-  isTilled() {
-    return this.type === "tilled";
+  isSoil() {
+    return this.type === "soil";
   }
 
-  till() {
-    this.type = "tilled";
+  isGrass() {
+    return this.type === "grass";
+  }
+
+
+  // 将格子变为耕地
+  makeSoil() {
+    this.type = "soil";
     this.updatedAt = Date.now();
   }
 
-  setType(type) {
-    this.type = type;
+  // 将格子变为草地
+  makeGrass() {
+    this.type = "grass";
     this.updatedAt = Date.now();
+    this.waterLevel = 0;
   }
+
+  // 重置
   reset() {
-    this.type = "normal";
+    this.type = "soil";
     this.updatedAt = Date.now();
-    this.waterLevel = 0;             // ⭐ 重置时土壤水分也清空
+    this.waterLevel = 0;
   }
 
   // ----------------
-  //   含水量相关
+  //   水分系统
   // ----------------
 
-  /** 直接设置水量（自动 clamp 0~1） */
   setWaterLevel(v) {
     this.waterLevel = Math.max(0, Math.min(1, v));
   }
 
-  /** 增加水量（自动 clamp 0~1） */
   addWater(v) {
     this.waterLevel = Math.max(0, Math.min(1, this.waterLevel + v));
   }
 
-  /** 减少水量（蒸发/干燥） */
   drainWater(v) {
     this.waterLevel = Math.max(0, Math.min(1, this.waterLevel - v));
   }
 
-  /** 是否湿润（常用于增快生长） */
   isWet() {
-    return this.waterLevel > 0.5; // 或者 > 0.3，可配置
+    return this.waterLevel > 0.5;
   }
 }

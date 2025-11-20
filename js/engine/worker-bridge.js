@@ -18,6 +18,7 @@ export function handleWorkerCallFactory(ctx) {
   const till = ctx.till?.bind(ctx);
   const useWater = ctx.useWater?.bind(ctx);
   const useFertilizer = ctx.useFertilizer?.bind(ctx);
+  const getGroundType = ctx.getGroundType?.bind(ctx);
 
   const app = ctx;        // 保留兼容
   const msg = ctx.msg;
@@ -184,6 +185,10 @@ export function handleWorkerCallFactory(ctx) {
 
       case "getTileSize":
         respond(getTileSize?.());
+        return;
+
+      case "getGroundType":
+        respond(getGroundType?.(args?.[0]));
         return;
 
       // --------------------

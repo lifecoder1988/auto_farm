@@ -19,7 +19,10 @@ import { setupRunner } from "./game/runner.js";
 import { collectSaveData, restoreGameState } from "./game/save.js";
 import { setupReset } from "./game/reset.js";
 
-export function initGame(saveData = null) {
+import { saveSlotData, loadSlotMetaList, saveSlotMetaList } from "./ui/save-ui.js";
+
+
+export function initGame({ saveData, slotId, slotName }) {
   // ---- app 使用 Proxy 封装 ----
   const raw = {};
   const app = new Proxy(raw, {
@@ -40,8 +43,16 @@ export function initGame(saveData = null) {
     },
   });
 
+  app.currentSlotId = slotId;
+  app.currentSlotName = slotName;
+
+  // 初始化 UI 显示
+  const slotLabel = document.getElementById("current-save-slot");
+  slotLabel.textContent = "当前存档：" + slotName;
+
   app.pendingFrameReqs = [];
-  
+
+  console.log(saveData)
   setupEditor(app, saveData);
   setupPixi(app, saveData);
   setupSystems(app, saveData);
@@ -65,5 +76,29 @@ export function initGame(saveData = null) {
   setupRunner(app);
   setupLoop(app);
   app.drawGrid();
+
+  // ③ ⭐ 在末尾挂上 saveCurrentSlot
+  app.saveCurrentSlot = function () {
+    const metaList = loadSlotMetaList();
+
+    if (!app.currentSlotId) {
+      alert("当前没有选择存档槽，无法保存！");
+      return;
+    }
+
+    const slot = metaList.find(m => m.id === app.currentSlotId);
+    if (!slot) {
+      alert("存档槽不存在！");
+      return;
+    }
+
+    const data = collectSaveData(app);
+    console.log(data)
+    slot.savedAt = Date.now();
+    saveSlotData(slot.id, data);
+    saveSlotMetaList(metaList);
+
+    alert(`已保存到 “${slot.name}”`);
+  };
   return app;
 }

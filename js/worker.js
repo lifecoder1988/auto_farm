@@ -157,6 +157,8 @@ async function till(entityId) {
   );
 }
 
+
+
 async function useWater(entityId) {
   requireFeature(CONSTANTS.UNLOCKS.Watering);
   const id = _resolveEntityId(entityId);
@@ -234,6 +236,13 @@ async function getPosition(id) {
   const e = await getEntity(id);
   if (!e) return { id: undefined, x: undefined, y: undefined };
   return { id: e.id, x: e.x, y: e.y };
+}
+
+
+async function getGroundType(entityId) {
+  requireFeature(CONSTANTS.UNLOCKS.Senses);
+  const id = _resolveEntityId(entityId);
+  return callMain("getGroundType", [id], true);
 }
 
 async function setActive(id) {

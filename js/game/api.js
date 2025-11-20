@@ -2,7 +2,7 @@
 
 import CONSTANTS from "../engine/core/constants.js";
 import { CROP_TYPES } from "../engine/crops/CropManager.js";
-
+import {Crop} from "../engine/crops/Crop.js";
 /**
  * 构建所有游戏 API（供 worker 与 UI 调用）
  */
@@ -60,7 +60,21 @@ export function createGameAPI(app) {
   function till(id) {
     const e = entityManager.getEntity(id);
     if (!e) return;
-    soil.till(e.x, e.y);
+    if(soil.getType(e.x, e.y) === "grass") {
+        soil.makeSoil(e.x, e.y);
+        cropManager.delete(e.x, e.y);
+        return 
+    } else {
+        cropManager.delete(e.x, e.y);
+        soil.makeGrass(e.x, e.y);
+    }
+    
+  }
+
+  function getGroundType(id) {
+    const e = entityManager.getEntity(id);
+    if (!e) return;
+    return soil.getType(e.x, e.y);
   }
 
   // =====================================================
@@ -129,7 +143,7 @@ export function createGameAPI(app) {
     });
 
     // 按科技倍率调整产量
-    const mul = unlock.getAbilityValueFromCrop(type);
+    const mul = unlock.getAbilityValue(CROP_TYPES[type].unlock, "产量倍率", 1);
     if (mul !== 1) crop.setYieldMultiplier(mul);
 
     cropManager.set(crop);
@@ -271,5 +285,6 @@ export function createGameAPI(app) {
     setWorldSize,
     createMaze,
     loadCodingFeatures,
+    getGroundType,
   };
 }

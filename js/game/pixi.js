@@ -34,7 +34,7 @@ export function setupPixi(app, saveData = null) {
   // ================================
   // gameState 初始化
   // ================================
-  const worldSize = saveData?.worldSize ?? 3;
+  const worldSize = saveData?.world?.size ?? 3;
 
   app.gameState = new GameState({
     worldSize,

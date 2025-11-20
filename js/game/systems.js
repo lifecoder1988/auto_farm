@@ -30,8 +30,8 @@ export function setupSystems(app, saveData = null) {
     pumpkin: 0,
     gold: 0,
     apple: 0,
-    hay: 100,
-    wood: 100,
+    hay: 10000,
+    wood: 10000,
     carrot: 0,
     cactus: 0,
     sunflower: 0,
@@ -49,9 +49,9 @@ export function setupSystems(app, saveData = null) {
   entityManager.initDefault();
 
   // 存档恢复实体
-  if (saveData?.entities) {
-    entityManager.entities = saveData.entities;
-    entityManager.activeId = saveData.entities[0]?.id ?? 0;
+  if (saveData?.player) {
+    entityManager.entities = saveData.player.entities;
+    entityManager.activeId = saveData.player.activeId ?? 0;
   }
 
   app.entityManager = entityManager;
@@ -75,8 +75,8 @@ export function setupSystems(app, saveData = null) {
   // SoilManager 土壤系统
   // ============================
   const soilTextures = {
-    normal: PIXI.Texture.from("asset/image/dry.png"),
-    tilled: PIXI.Texture.from("asset/image/soil.png"),
+    grass: PIXI.Texture.from("asset/image/grass.png"),
+    soil: PIXI.Texture.from("asset/image/soil.png"),
   };
 
   app.soilManager = new SoilManager({
@@ -112,8 +112,8 @@ export function setupSystems(app, saveData = null) {
   // ============================
   app.unlockManager = new UnlockManager({
     inventory: app.inventory,
-    techLevels: saveData?.techLevels || {},
-    unlocks: saveData?.unlocks || {},
+    techLevels: saveData?.unlocks?.techLevels || {},
+    unlocks: saveData?.unlocks?.unlocks || {},
     techTree: TECH_TREE,
   });
 

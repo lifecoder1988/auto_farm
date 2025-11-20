@@ -12,6 +12,7 @@ export function setupUI(app) {
   const runBtn = document.getElementById("run");
   const resetBtn = document.getElementById("reset");
   const timeoutInput = document.getElementById("timeout-ms");
+  const saveBtn = document.getElementById("btn-save-game");
 
   // 可供其他模块使用
   app.updateInventory = updateInventory;
@@ -57,13 +58,21 @@ export function setupUI(app) {
     app.resetGame?.();
   });
 
+
+  // ==========================
+  // 保存游戏按钮
+  // ==========================
+  saveBtn.addEventListener("click", () => {
+    app.saveCurrentSlot();
+  });
+
   // ==========================
   // 超时设置
   // ==========================
-  timeoutInput.addEventListener("change", () => {
+  /*timeoutInput.addEventListener("change", () => {
     const v = parseInt(timeoutInput.value);
     if (v >= 0) app.runTimeoutMs = v;
-  });
+  });*/
 
   // ==========================
   // 控制台自动滚动

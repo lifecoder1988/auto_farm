@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Web 编程游戏 (JavaScript)</title>
+    <link rel="stylesheet" href="asset/css/save.css" />
     <script
       id="ace-loader"
       src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/ace.js"
@@ -281,12 +282,13 @@
       <h1>编程农场开源版</h1>
       <span id="msg">等待初始化…</span>
       <span id="inventory">🎒 背包: </span>
+      <span id="current-save-slot" class="save-slot-label">未使用存档</span>
       <span id="lang-note">🟨 当前脚本语言：JavaScript</span>
 
       <button id="run">运行</button>
       <button id="reset" class="secondary">重置</button>
 
-      <label for="timeout-ms" class="timeout-label">超时(ms)</label>
+      <!--<label for="timeout-ms" class="timeout-label">超时(ms)</label>
       <input
         id="timeout-ms"
         type="number"
@@ -294,7 +296,9 @@
         step="100"
         value="600000"
         class="timeout-input"
-      />
+      />-->
+
+      <button id="btn-save-game" class="secondary">保存游戏</button>
 
       <button id="toggle-tech" class="secondary">科技树</button>
     </header>
@@ -313,6 +317,29 @@
           <div id="tech-scroll">
             <div id="tech-graph"></div>
           </div>
+        </div>
+      </div>
+    </div>
+
+     <!-- ⭐ 启动时：新游戏 / 加载存档 弹窗 -->
+    <div id="start-overlay">
+      <div id="start-dialog">
+        <h2>编程农场</h2>
+        <p class="start-subtitle">请选择开始方式：</p>
+
+        <div class="start-actions">
+          <button id="btn-new-game">新游戏</button>
+          <button id="btn-load-game" class="secondary">加载存档</button>
+        </div>
+
+        <!-- 加载存档区域（点击“加载存档”后展开） -->
+        <div id="save-list-wrap" class="hidden">
+          <div class="save-list-header">
+            <span>选择一个存档：</span>
+            <button id="btn-create-empty" class="secondary small">新建空存档槽</button>
+          </div>
+          <ul id="save-slot-list"></ul>
+          <p class="save-tip">提示：存档保存在本机浏览器的 localStorage 中。</p>
         </div>
       </div>
     </div>

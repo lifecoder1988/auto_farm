@@ -5,7 +5,7 @@ export function setupEditor(app, saveData = null) {
   const editor = ace.edit("editor");
 
   // 设置初始化代码（支持从存档恢复）
-  const initialCode = saveData?.code || DEFAULT_CODE;
+  const initialCode = saveData?.editor?.code || DEFAULT_CODE;
   editor.setValue(initialCode, -1);
 
   editor.setTheme("ace/theme/monokai");
@@ -33,7 +33,7 @@ function setupCustomCompletions() {
         { caption: "till", value: "till()", meta: "game api" },
         { caption: "useWater", value: "useWater()", meta: "game api" },
         { caption: "useFertilizer", value: "useFertilizer()", meta: "game api" },
-
+        { caption: "getGroundType", value: "getGroundType()", meta: "game api" },
         {
           caption: "console.log(msg)",
           value: "console.log('hello world')",

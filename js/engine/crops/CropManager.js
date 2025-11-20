@@ -10,58 +10,66 @@ import { TreeCrop } from "./TreeCrop.js";
 import { CactusCrop } from "./CactusCrop.js";
 import { SunFlowerCrop } from "./SunFlowerCrop.js";
 import { Crop } from "./Crop.js";
-
-import { CropEventBus } from "./CropEventBus.js";
+import CONSTANTS from "../core/constants.js";
 
 export const CROP_TYPES = {
   土豆: {
     time: 3000,
     item: "potato",
+    unlock: CONSTANTS.UNLOCKS.Potato,
     renderer: new PotatoCrop(),
   },
 
   花生: {
     time: 5000,
     item: "peanut",
+    unlock: CONSTANTS.UNLOCKS.Peanut,
     renderer: null, // 还没做 PeanutCrop，可以先留空
   },
 
   南瓜: {
     time: 7000,
     item: "pumpkin",
+    unlock: CONSTANTS.UNLOCKS.Pumpkins,
     renderer: new PumpkinCrop(),
   },
 
   草: {
     time: 0,
     item: "hay",
+    unlock: CONSTANTS.UNLOCKS.Grass,
     renderer: new HayCrop(),
   },
   灌木丛: {
     time: 0,
     item: "wood",
+    unlock: CONSTANTS.UNLOCKS.Trees,
     renderer: new BushCrop(),
   },
   胡萝卜: {
     time: 0,
     item: "carrot",
+    unlock: CONSTANTS.UNLOCKS.Carrots,
     renderer: new CarrotCrop(),
     cost: { hay: 512, wood: 512 },
   },
   树: {
     time: 0,
     item: "wood",
+    unlock: CONSTANTS.UNLOCKS.Trees,
     renderer: new TreeCrop(),
   },
   仙人掌: {
     time: 0,
     item: "cactus",
+    unlock: CONSTANTS.UNLOCKS.Cactus,
     renderer: new CactusCrop(),
     cost: { pumpkin: 64 },
   },
   向日葵: {
     time: 0,
     item: "sunflower",
+    unlock: CONSTANTS.UNLOCKS.Sunflowers,
     renderer: new SunFlowerCrop(),
     cost: { carrot: 1 },
   },
@@ -108,6 +116,37 @@ export class CropManager {
     return this.crops;
   }
 
+  export() {
+    return Object.values(this.crops).map((c) => ({
+      type: c.type,
+      x: c.x,
+      y: c.y,
+      plantedAt: c.plantedAt,
+      matureTime: c.matureTime,
+      yieldMultiplier: c.yieldMultiplier ?? 1,
+      mergeArea: c.mergeArea || null,
+    }));
+  }
+
+  import(cropList) {
+    this.reset();
+    cropList.forEach((c) => {
+      const crop = new Crop({
+        type: c.type,
+        plantedAt: c.plantedAt,
+        matureTime: c.matureTime,
+        key: `${c.x}_${c.y}`,
+      });
+
+      crop.x = c.x;
+      crop.y = c.y;
+      crop.yieldMultiplier = c.yieldMultiplier ?? 1;
+      crop.mergeArea = c.mergeArea ?? null;
+
+      this.set(crop);
+    });
+  }
+
   reset() {
     this.crops = {};
   }
@@ -117,7 +156,7 @@ export class CropManager {
     if (!crop) return false;
 
     crop.applyFertilizer(ms);
-    return true;  
+    return true;
   }
 
   /**

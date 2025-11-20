@@ -62,8 +62,8 @@ export function setupUI(app) {
   // ==========================
   // 保存游戏按钮
   // ==========================
-  saveBtn.addEventListener("click", () => {
-    app.saveCurrentSlot();
+  saveBtn.addEventListener("click", async () => {
+    await app.saveCurrentSlot();
   });
 
   // ==========================

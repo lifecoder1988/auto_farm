@@ -22,6 +22,7 @@ import { setupReset } from "./game/reset.js";
 import { saveSlotData, loadSlotMetaList, saveSlotMetaList } from "./ui/save-ui.js";
 
 import { renderAllMazes } from "./engine/maze/renderMaze.js";
+import { alertModal } from "./ui/alert.js";
 
 export function initGame({ saveData, slotId, slotName }) {
   // ---- app 使用 Proxy 封装 ----
@@ -82,17 +83,17 @@ export function initGame({ saveData, slotId, slotName }) {
   app.drawGrid();
 
   // ③ ⭐ 在末尾挂上 saveCurrentSlot
-  app.saveCurrentSlot = function () {
+  app.saveCurrentSlot = async function () {
     const metaList = loadSlotMetaList();
 
     if (!app.currentSlotId) {
-      alert("当前没有选择存档槽，无法保存！");
+      await alertModal("提示","当前没有选择存档槽，无法保存！");
       return;
     }
 
     const slot = metaList.find(m => m.id === app.currentSlotId);
     if (!slot) {
-      alert("存档槽不存在！");
+      await alertModal("提示","存档槽不存在！");
       return;
     }
 
@@ -102,7 +103,8 @@ export function initGame({ saveData, slotId, slotName }) {
     saveSlotData(slot.id, data);
     saveSlotMetaList(metaList);
 
-    alert(`已保存到 “${slot.name}”`);
+    
+    await alertModal("提示",`已保存到 “${slot.name}”`);
   };
   return app;
 }

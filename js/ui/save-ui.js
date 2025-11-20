@@ -2,8 +2,10 @@
 
 import { getCurrentTimeString } from "../utils/time.js";
 
-const SAVE_META_KEY = "farm_save_slots"; // 存档槽列表
-const SAVE_SLOT_PREFIX = "farm_save_slot_"; // 单个存档内容 key 前缀
+import { confirmModal } from "./confirm.js";
+
+const SAVE_META_KEY = "farm_save_slots";
+const SAVE_SLOT_PREFIX = "farm_save_slot_";
 
 export function loadSlotMetaList() {
   try {
@@ -35,10 +37,7 @@ export function saveSlotData(slotId, data) {
 }
 
 /**
- * 初始化启动 UI
- * @param {object} options
- * @param {(saveData:null|object)=>void} options.onStartGame  选好后调用：传 null 表示新游戏
- * @param {() => object} [options.onCollectSave]  可选：用于“立即保存当前游戏”
+ * 主菜单初始化（方案 A）
  */
 export function initStartUI({ onStartGame, onCollectSave }) {
   const overlay = document.getElementById("start-overlay");
@@ -48,50 +47,58 @@ export function initStartUI({ onStartGame, onCollectSave }) {
   const slotListEl = document.getElementById("save-slot-list");
   const btnCreateEmpty = document.getElementById("btn-create-empty");
 
-  if (!overlay || !btnNew || !btnLoad || !saveWrap || !slotListEl) {
-    console.warn("[SaveUI] 元素未找到，启动 UI 未初始化");
+  if (!overlay) {
+    console.warn("Start overlay missing");
     return;
   }
 
-  // 渲染存档槽列表
+  // ------------------------------
+  // 渲染卡片式存档（方案 A 核心）
+  // ------------------------------
   function renderSlotList() {
     const metaList = loadSlotMetaList();
     slotListEl.innerHTML = "";
 
     if (!metaList.length) {
       const li = document.createElement("li");
-      li.textContent = "暂无存档，可以点击“新建空存档槽”。";
-      li.style.opacity = "0.7";
-      li.style.fontSize = "12px";
+      li.textContent = "暂无存档，请新建存档槽。";
+      li.style.opacity = "0.6";
+      li.style.fontSize = "14px";
       slotListEl.appendChild(li);
       return;
     }
 
     metaList.forEach((meta) => {
       const li = document.createElement("li");
-      li.className = "save-slot-item";
+      li.className = "save-card";
 
-      const main = document.createElement("div");
-      main.className = "save-slot-main";
+      // ===== 左侧文本区 =====
+      const info = document.createElement("div");
+      info.className = "save-card-info";
 
-      const nameEl = document.createElement("span");
-      nameEl.className = "save-slot-name";
-      nameEl.textContent = meta.name || `存档槽 ${meta.id}`;
+      // 大标题
+      const title = document.createElement("div");
+      title.className = "save-card-title";
+      title.textContent = meta.name || `存档 ${meta.id}`;
 
-      const timeEl = document.createElement("span");
-      timeEl.className = "save-slot-meta";
-      const t = meta.savedAt ? new Date(meta.savedAt) : null;
-      timeEl.textContent = t ? `上次保存：${t.toLocaleString()}` : "尚未保存";
+      // 时间
+      const time = document.createElement("div");
+      time.className = "save-card-time";
+      time.textContent = meta.savedAt
+        ? "上次保存：" + new Date(meta.savedAt).toLocaleString()
+        : "尚未保存";
 
-      main.appendChild(nameEl);
-      main.appendChild(timeEl);
+      info.appendChild(title);
+      info.appendChild(time);
 
-      const actions = document.createElement("div");
-      actions.className = "save-slot-actions";
+      // ===== 右侧按钮组 =====
+      const btns = document.createElement("div");
+      btns.className = "save-card-buttons";
 
+      // 加载按钮
       const btnLoadSlot = document.createElement("button");
-      btnLoadSlot.textContent = "加载";
-      btnLoadSlot.className = "small";
+      btnLoadSlot.className = "save-btn load";
+      btnLoadSlot.innerHTML = "▶ 加载";
       btnLoadSlot.addEventListener("click", () => {
         const data = loadSlotData(meta.id);
         overlay.classList.add("hidden");
@@ -102,26 +109,18 @@ export function initStartUI({ onStartGame, onCollectSave }) {
         });
       });
 
-      const btnOverwrite = document.createElement("button");
-      btnOverwrite.textContent = "覆盖";
-      btnOverwrite.className = "small secondary";
-      btnOverwrite.addEventListener("click", () => {
-        if (!onCollectSave) return;
-        const data = onCollectSave();
-        const now = Date.now();
-
-        // 更新 meta
-        meta.savedAt = now;
-        saveSlotData(meta.id, data);
-        saveSlotMetaList(metaList);
-        renderSlotList();
-      });
-
+      // 删除按钮
       const btnDelete = document.createElement("button");
-      btnDelete.textContent = "删除";
-      btnDelete.className = "small secondary";
-      btnDelete.addEventListener("click", () => {
-        if (!confirm(`确定删除存档 "${meta.name}" 吗？`)) return;
+      btnDelete.className = "save-btn delete";
+      btnDelete.textContent = "🗑 删除";
+      btnDelete.addEventListener("click", async () => {
+        console.log("BBBB")
+        const ok = await confirmModal(
+          "🗑 删除存档",
+          `确定要删除 “${meta.name}” 吗？`
+        );
+        console.log("AAA")
+        if (!ok) return;
         const idx = metaList.findIndex((m) => m.id === meta.id);
         if (idx >= 0) metaList.splice(idx, 1);
         localStorage.removeItem(SAVE_SLOT_PREFIX + meta.id);
@@ -129,39 +128,28 @@ export function initStartUI({ onStartGame, onCollectSave }) {
         renderSlotList();
       });
 
-      actions.appendChild(btnLoadSlot);
-      actions.appendChild(btnOverwrite);
-      actions.appendChild(btnDelete);
+      btns.appendChild(btnLoadSlot);
 
-      li.appendChild(main);
-      li.appendChild(actions);
+      btns.appendChild(btnDelete);
+
+      li.appendChild(info);
+      li.appendChild(btns);
       slotListEl.appendChild(li);
     });
   }
 
-  // 新游戏：不带存档启动
+  // 新游戏
   btnNew.addEventListener("click", () => {
     const metaList = loadSlotMetaList();
-
-    // 自动生成 slot ID
     const newId = metaList.length
       ? Math.max(...metaList.map((m) => m.id)) + 1
       : 1;
-
     const name = "存档 " + getCurrentTimeString();
-     
 
-    const meta = {
-      id: newId,
-      name,
-      savedAt: null, // 新建存档槽，没有保存内容
-    };
-
-    // 写入 localStorage
+    const meta = { id: newId, name, savedAt: null };
     metaList.push(meta);
     saveSlotMetaList(metaList);
 
-    // 隐藏选择界面并进入游戏
     overlay.classList.add("hidden");
     onStartGame?.({
       saveData: null,
@@ -170,40 +158,22 @@ export function initStartUI({ onStartGame, onCollectSave }) {
     });
   });
 
-  // 展开“加载存档”区域
+  // 加载存档列表
   btnLoad.addEventListener("click", () => {
     saveWrap.classList.remove("hidden");
     renderSlotList();
   });
 
-  // 新建空存档槽（只是创建一个 meta，不立即保存状态）
+  // 创建空存档槽
   btnCreateEmpty?.addEventListener("click", () => {
     const metaList = loadSlotMetaList();
     const id = metaList.length ? Math.max(...metaList.map((m) => m.id)) + 1 : 1;
+
     const name = prompt("请输入存档名称：", `存档 ${id}`) || `存档 ${id}`;
     const meta = { id, name, savedAt: null };
     metaList.push(meta);
     saveSlotMetaList(metaList);
+
     renderSlotList();
   });
-}
-
-/**
- * 可选：游戏运行中提供“保存游戏”按钮时用
- */
-export function saveCurrentToDefaultSlot(app) {
-  const metaList = loadSlotMetaList();
-  if (!metaList.length) {
-    alert("还没有存档槽，请先在启动界面创建一个存档槽。");
-    return;
-  }
-  const slot = metaList[0]; // 简单：默认存到第一个
-  const data = app.collectSaveData();
-
-  console.log(data)
-  
-  slot.savedAt = Date.now();
-  saveSlotMetaList(metaList);
-  saveSlotData(slot.id, data);
-  alert(`已保存到 "${slot.name}"`);
 }

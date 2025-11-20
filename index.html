@@ -3,8 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Web 编程游戏 (JavaScript)</title>
+    <title>编程农场开源版</title>
     <link rel="stylesheet" href="asset/css/save.css" />
+    <link rel="stylesheet" href="asset/css/confirm.css" />
+    <link rel="stylesheet" href="asset/css/alert.css" />
     <script
       id="ace-loader"
       src="https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/ace.js"
@@ -319,9 +321,13 @@
 
       <button id="toggle-tech" class="secondary">科技树</button>
 
-       <a href="/doc" target="_blank" class="header-link">文档</a>
-      <a href="https://github.com/lifecoder1988/auto_farm" target="_blank" class="header-link">GitHub</a>
-     
+      <a href="/doc" target="_blank" class="header-link">文档</a>
+      <a
+        href="https://github.com/lifecoder1988/auto_farm"
+        target="_blank"
+        class="header-link"
+        >GitHub</a
+      >
     </header>
 
     <div id="editor"></div>
@@ -345,7 +351,7 @@
     <!-- ⭐ 启动时：新游戏 / 加载存档 弹窗 -->
     <div id="start-overlay">
       <div id="start-dialog">
-        <h2>编程农场</h2>
+        <h2>编程农场开源版</h2>
         <p class="start-subtitle">请选择开始方式：</p>
 
         <div class="start-actions">
@@ -355,14 +361,34 @@
 
         <!-- 加载存档区域（点击“加载存档”后展开） -->
         <div id="save-list-wrap" class="hidden">
-          <div class="save-list-header">
-            <span>选择一个存档：</span>
-            <button id="btn-create-empty" class="secondary small">
-              新建空存档槽
-            </button>
-          </div>
+          <div class="save-list-header"></div>
           <ul id="save-slot-list"></ul>
           <p class="save-tip">提示：存档保存在本机浏览器的 localStorage 中。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 自定义确认框 -->
+    <div id="confirm-overlay" class="hidden">
+      <div id="confirm-dialog">
+        <div id="confirm-title"></div>
+        <div id="confirm-message"></div>
+
+        <div id="confirm-actions">
+          <button id="confirm-cancel" class="btn-cancel">取消</button>
+          <button id="confirm-ok" class="btn-danger">删除</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 自定义 Alert 弹窗 -->
+    <div id="alert-overlay" class="hidden">
+      <div id="alert-dialog">
+        <div id="alert-title"></div>
+        <div id="alert-message"></div>
+
+        <div id="alert-actions">
+          <button id="alert-ok" class="btn-primary">确定</button>
         </div>
       </div>
     </div>
@@ -375,6 +401,7 @@
         <div id="console-output"></div>
       </details>
     </div>
+
     <!-- 引入 PixiJS 游戏框架 -->
     <script src="./asset/js/pixi.min.js"></script>
 

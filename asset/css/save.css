@@ -3,10 +3,21 @@
   position: fixed;
   inset: 0;
   z-index: 2000;
-  background: rgba(0, 0, 0, 0.7);
+
+  /* ⭐ 使用你的 bg.png */
+  background: url("../image/bg.png") center/cover no-repeat;
+
   display: flex;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+#start-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35); /* 可调整 */
 }
 
 #start-overlay.hidden {
@@ -14,101 +25,193 @@
 }
 
 #start-dialog {
-  width: 420px;
-  max-width: 90vw;
-  background: #1f1f1f;
-  border-radius: 12px;
-  padding: 20px 22px 18px;
-  box-shadow: 0 0 24px rgba(0, 0, 0, 0.6);
+  width: 700px;
+  padding: 40px 32px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px);
+  border-radius: 22px;
+
+  /* 游戏感阴影 */
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
+  text-align: center;
 }
 
+/* 标题 */
 #start-dialog h2 {
-  margin: 0 0 4px;
-  font-size: 20px;
+  font-size: 32px;
+  margin: 0 0 14px;
+  letter-spacing: 1px;
 }
 
+/* 副标题 */
 .start-subtitle {
-  margin: 0 0 16px;
-  font-size: 13px;
+  margin-top: 0;
+  font-size: 14px;
   opacity: 0.8;
 }
 
+/* 按钮组 */
 .start-actions {
+  margin-top: 26px;
   display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
+  justify-content: center;
+  gap: 18px;
 }
 
+/* ----------- 游戏按钮（大风格） ----------- */
+#start-dialog button {
+  padding: 12px 26px;
+  font-size: 16px;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.15s ease-out;
+}
+
+/* 主按钮（新游戏） */
+#btn-new-game {
+  background: #42c259;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(66, 194, 89, 0.4);
+}
+
+#btn-new-game:hover {
+  background: #4be067;
+  transform: translateY(-2px);
+}
+
+/* 次按钮（加载存档） */
+#btn-load-game {
+  background: #3a3a3a;
+  color: #fff;
+}
+
+#btn-load-game:hover {
+  background: #505050;
+  transform: translateY(-2px);
+}
+
+/* ---------- 存档区域外框：半透明毛玻璃 ---------- */
 #save-list-wrap {
-  margin-top: 8px;
-  border-top: 1px solid #333;
-  padding-top: 10px;
+  margin-top: 28px;
+  padding: 22px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 18px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
 }
 
-#save-list-wrap.hidden {
-  display: none;
-}
-
+/* 标题行：选择一个存档 + 新建按钮 */
 .save-list-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
-  font-size: 13px;
+  margin-bottom: 18px;
 }
 
-#save-slot-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  max-height: 220px;
-  overflow-y: auto;
-  font-size: 13px;
+/* 新建按钮 */
+#btn-create-empty {
+  padding: 6px 12px;
+  font-size: 14px;
+  border-radius: 10px;
 }
 
-.save-slot-item {
+/* ---------- 存档列表 ---------- */
+
+/* --------------------------------
+   存档卡片（方案 A）
+-------------------------------- */
+.save-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 8px;
-  border-radius: 6px;
-  background: #252525;
-  margin-bottom: 6px;
+  gap: 20px;
+
+  padding: 18px 20px;
+  border-radius: 16px;
+
+  background: rgba(0, 0, 0, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
-.save-slot-main {
+.save-card-info {
   display: flex;
   flex-direction: column;
-}
-
-.save-slot-name {
-  font-weight: 600;
-}
-
-.save-slot-meta {
-  font-size: 11px;
-  opacity: 0.7;
-}
-
-.save-slot-actions {
-  display: flex;
   gap: 6px;
+  min-width: 0;
 }
 
-button.small {
-  padding: 4px 8px;
-  font-size: 12px;
+.save-card-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
 }
 
-.save-tip {
-  margin: 6px 0 0;
-  font-size: 11px;
-  opacity: 0.65;
+.save-card-time {
+  font-size: 13px;
+  color: #bbb;
+  opacity: 0.8;
 }
 
+/* 按钮区 */
+.save-card-buttons {
+  display: flex;
+  gap: 10px;
+}
 
-.save-slot-label {
-  margin-left: 20px;
-  font-size: 12px;
-  opacity: 0.75;
+/* 按钮基础样式 */
+.save-btn {
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.15s ease-out;
+}
+
+/* 加载（绿色） */
+.save-btn.load {
+  background: #3ecf5a;
+  color: white;
+}
+.save-btn.load:hover {
+  background: #4be66d;
+  transform: translateY(-2px);
+}
+
+/* 覆盖（灰） */
+.save-btn.cover {
+  background: #4d4d4d;
+  color: white;
+}
+.save-btn.cover:hover {
+  background: #5a5a5a;
+  transform: translateY(-2px);
+}
+
+/* 删除（红） */
+.save-btn.delete {
+  background: #d74c4c;
+  color: white;
+}
+.save-btn.delete:hover {
+  background: #f25b5b;
+  transform: translateY(-2px);
+}
+
+/* 列表整体 */
+#save-slot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: 6px;
+  max-height: 600px;
+
+  overflow: auto;
 }

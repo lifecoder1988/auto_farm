@@ -1,10 +1,11 @@
-<line-height=50%><size=40px>Break 语句</size>
-</line-height>
+Break 语句
+
 break 语句的作用是：提前停止它所在的循环。当执行到 break 语句时，会立即跳出该循环，并开始运行该循环之后的代码。
 
-for i in range(10):
+for (let i = 0; i < 10; i++) {
 	break
-print(i)
+}
+console.log(i)
 
 这段代码会打印 0，因为在循环的第 1 次迭代中 i 是 0，然后 break 语句跳出了循环。
 
@@ -12,20 +13,25 @@ print(i)
 
 该语句也适用于 while 循环。
 
-while True:
-	if can_harvest():
+while (true) {
+	if (canHarvest()) {
 		break
+	}
+}
 
-这段代码会一直运行 while 循环，直到 can_harvest() 函数运行的结果为 True。
+这段代码会一直运行 while 循环，直到 canHarvest() 函数运行的结果为 true。
 其效果与以下代码相同：
 
-while not can_harvest():
-	pass
+while (!canHarvest()) {
+	// 空循环
+}
 
 在嵌套循环中，break 语句始终退出它所在的循环。
 
-for i in range(10):
-	for j in range(10):
+for (let i = 0; i < 10; i++) {
+	for (let j = 0; j < 10; j++) {
 		break
-		print("这句永远不会打印")
-	print("这句会打印 10 次")
+		console.log("这句永远不会打印")
+	}
+	console.log("这句会打印 10 次")
+}

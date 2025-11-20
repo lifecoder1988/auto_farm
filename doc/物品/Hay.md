@@ -1,3 +1,2 @@
-Hay</size>
-</line-height>
+Hay
 通过割草获得。

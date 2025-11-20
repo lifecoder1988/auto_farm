@@ -1,5 +1,55 @@
 [
- 
+
+   {
+    "title": "通用信息",
+    "children": [
+      {
+        "title": "入门指南",
+        "path": "通用信息/入门指南.md"
+      }
+    ]
+  },
+  {
+    "title": "作物",
+    "children": [
+      {
+        "title": "Apple",
+        "path": "作物/Apple.md"
+      },
+      {
+        "title": "Bush",
+        "path": "作物/Bush.md"
+      },
+      {
+        "title": "Cactus",
+        "path": "作物/Cactus.md"
+      },
+      {
+        "title": "Carrot",
+        "path": "作物/Carrot.md"
+      },
+      {
+        "title": "Grass",
+        "path": "作物/Grass.md"
+      },
+      {
+        "title": "Pumpkin",
+        "path": "作物/Pumpkin.md"
+      },
+      {
+        "title": "Sunflower",
+        "path": "作物/Sunflower.md"
+      },
+      {
+        "title": "Treasure",
+        "path": "作物/Treasure.md"
+      },
+      {
+        "title": "Tree",
+        "path": "作物/Tree.md"
+      }
+    ]
+  },
   {
     "title": "内置函数",
     "children": [
@@ -8,92 +58,60 @@
         "path": "内置函数/abs.md"
       },
       {
-        "title": "can_harvest",
-        "path": "内置函数/can_harvest.md"
+        "title": "canHarvest",
+        "path": "内置函数/canHarvest.md"
       },
       {
-        "title": "can_move",
-        "path": "内置函数/can_move.md"
+        "title": "canMove",
+        "path": "内置函数/canMove.md"
       },
       {
-        "title": "change_hat",
-        "path": "内置函数/change_hat.md"
+        "title": "changeCharacter",
+        "path": "内置函数/changeCharacter.md"
       },
       {
         "title": "clear",
         "path": "内置函数/clear.md"
       },
       {
-        "title": "dict",
-        "path": "内置函数/dict.md"
+        "title": "console",
+        "path": "内置函数/console.md"
       },
       {
-        "title": "do_a_flip",
-        "path": "内置函数/do_a_flip.md"
+        "title": "getCropType",
+        "path": "内置函数/getCropType.md"
       },
       {
-        "title": "get_companion",
-        "path": "内置函数/get_companion.md"
+        "title": "getEntityCount",
+        "path": "内置函数/getEntityCount.md"
       },
       {
-        "title": "get_cost",
-        "path": "内置函数/get_cost.md"
+        "title": "getGroundType",
+        "path": "内置函数/getGroundType.md"
       },
       {
-        "title": "get_entity_type",
-        "path": "内置函数/get_entity_type.md"
+        "title": "getMaxEntityCount",
+        "path": "内置函数/getMaxEntityCount.md"
       },
       {
-        "title": "get_ground_type",
-        "path": "内置函数/get_ground_type.md"
+        "title": "getPosition",
+        "path": "内置函数/getPosition.md"
       },
       {
-        "title": "get_pos_x",
-        "path": "内置函数/get_pos_x.md"
+        "title": "getWater",
+        "path": "内置函数/getWater.md"
       },
       {
-        "title": "get_pos_y",
-        "path": "内置函数/get_pos_y.md"
-      },
-      {
-        "title": "get_tick_count",
-        "path": "内置函数/get_tick_count.md"
-      },
-      {
-        "title": "get_time",
-        "path": "内置函数/get_time.md"
-      },
-      {
-        "title": "get_water",
-        "path": "内置函数/get_water.md"
-      },
-      {
-        "title": "get_world_size",
-        "path": "内置函数/get_world_size.md"
+        "title": "getWorldSize",
+        "path": "内置函数/getWorldSize.md"
       },
       {
         "title": "harvest",
         "path": "内置函数/harvest.md"
       },
       {
-        "title": "has_finished",
-        "path": "内置函数/has_finished.md"
-      },
-      {
-        "title": "len",
-        "path": "内置函数/len.md"
-      },
-      {
-        "title": "list",
-        "path": "内置函数/list.md"
-      },
-      {
         "title": "max",
         "path": "内置函数/max.md"
-      },
-      {
-        "title": "max_drones",
-        "path": "内置函数/max_drones.md"
       },
       {
         "title": "measure",
@@ -108,84 +126,36 @@
         "path": "内置函数/move.md"
       },
       {
-        "title": "num_drones",
-        "path": "内置函数/num_drones.md"
-      },
-      {
-        "title": "num_items",
-        "path": "内置函数/num_items.md"
-      },
-      {
-        "title": "num_unlocked",
-        "path": "内置函数/num_unlocked.md"
-      },
-      {
-        "title": "pet_the_piggy",
-        "path": "内置函数/pet_the_piggy.md"
+        "title": "numItems",
+        "path": "内置函数/numItems.md"
       },
       {
         "title": "plant",
         "path": "内置函数/plant.md"
       },
       {
-        "title": "print",
-        "path": "内置函数/print.md"
-      },
-      {
-        "title": "quick_print",
-        "path": "内置函数/quick_print.md"
-      },
-      {
         "title": "random",
         "path": "内置函数/random.md"
-      },
-      {
-        "title": "range",
-        "path": "内置函数/range.md"
       },
       {
         "title": "set",
         "path": "内置函数/set.md"
       },
       {
-        "title": "set_execution_speed",
-        "path": "内置函数/set_execution_speed.md"
+        "title": "setWorldSize",
+        "path": "内置函数/setWorldSize.md"
       },
       {
-        "title": "set_world_size",
-        "path": "内置函数/set_world_size.md"
-      },
-      {
-        "title": "simulate",
-        "path": "内置函数/simulate.md"
-      },
-      {
-        "title": "spawn_drone",
-        "path": "内置函数/spawn_drone.md"
-      },
-      {
-        "title": "str",
-        "path": "内置函数/str.md"
-      },
-      {
-        "title": "swap",
-        "path": "内置函数/swap.md"
+        "title": "spawn",
+        "path": "内置函数/spawn.md"
       },
       {
         "title": "till",
         "path": "内置函数/till.md"
       },
       {
-        "title": "unlock",
-        "path": "内置函数/unlock.md"
-      },
-      {
-        "title": "use_item",
-        "path": "内置函数/use_item.md"
-      },
-      {
-        "title": "wait_for",
-        "path": "内置函数/wait_for.md"
+        "title": "useItem",
+        "path": "内置函数/useItem.md"
       }
     ]
   },
@@ -203,64 +173,11 @@
     ]
   },
   {
-    "title": "实体",
-    "children": [
-      {
-        "title": "Apple",
-        "path": "实体/Apple.md"
-      },
-      {
-        "title": "Bush",
-        "path": "实体/Bush.md"
-      },
-      {
-        "title": "Cactus",
-        "path": "实体/Cactus.md"
-      },
-      {
-        "title": "Carrot",
-        "path": "实体/Carrot.md"
-      },
-      {
-        "title": "Dead_Pumpkin",
-        "path": "实体/Dead_Pumpkin.md"
-      },
-      {
-        "title": "Dinosaur",
-        "path": "实体/Dinosaur.md"
-      },
-      {
-        "title": "Grass",
-        "path": "实体/Grass.md"
-      },
-      {
-        "title": "Hedge",
-        "path": "实体/Hedge.md"
-      },
-      {
-        "title": "Pumpkin",
-        "path": "实体/Pumpkin.md"
-      },
-      {
-        "title": "Sunflower",
-        "path": "实体/Sunflower.md"
-      },
-      {
-        "title": "Treasure",
-        "path": "实体/Treasure.md"
-      },
-      {
-        "title": "Tree",
-        "path": "实体/Tree.md"
-      }
-    ]
-  },
-  {
     "title": "物品",
     "children": [
       {
-        "title": "Bone",
-        "path": "物品/Bone.md"
+        "title": "Apple",
+        "path": "物品/Apple.md"
       },
       {
         "title": "Cactus",
@@ -295,10 +212,6 @@
         "path": "物品/Water.md"
       },
       {
-        "title": "Weird_Substance",
-        "path": "物品/Weird_Substance.md"
-      },
-      {
         "title": "Wood",
         "path": "物品/Wood.md"
       }
@@ -328,10 +241,6 @@
         "path": "编程/While 循环.md"
       },
       {
-        "title": "元组",
-        "path": "编程/元组.md"
-      },
-      {
         "title": "函数",
         "path": "编程/函数.md"
       },
@@ -352,16 +261,8 @@
         "path": "编程/字典.md"
       },
       {
-        "title": "导入",
-        "path": "编程/导入.md"
-      },
-      {
         "title": "注释",
         "path": "编程/注释.md"
-      },
-      {
-        "title": "调试",
-        "path": "编程/调试.md"
       },
       {
         "title": "运算符",
@@ -409,16 +310,8 @@
         "path": "解锁/实用工具.md"
       },
       {
-        "title": "导入",
-        "path": "解锁/导入.md"
-      },
-      {
         "title": "巨型农场",
         "path": "解锁/巨型农场.md"
-      },
-      {
-        "title": "帽子",
-        "path": "解锁/帽子.md"
       },
       {
         "title": "循环",
@@ -445,24 +338,12 @@
         "path": "解锁/树.md"
       },
       {
-        "title": "模拟",
-        "path": "解锁/模拟.md"
-      },
-      {
         "title": "浇水",
         "path": "解锁/浇水.md"
       },
       {
-        "title": "混合种植",
-        "path": "解锁/混合种植.md"
-      },
-      {
         "title": "种植",
         "path": "解锁/种植.md"
-      },
-      {
-        "title": "耗材数量",
-        "path": "解锁/耗材数量.md"
       },
       {
         "title": "肥料",
@@ -473,16 +354,12 @@
         "path": "解锁/胡萝卜.md"
       },
       {
-        "title": "自动解锁",
-        "path": "解锁/自动解锁.md"
-      },
-      {
         "title": "草",
         "path": "解锁/草.md"
       },
       {
-        "title": "计时",
-        "path": "解锁/计时.md"
+        "title": "角色",
+        "path": "解锁/角色.md"
       },
       {
         "title": "调试 2",
@@ -503,39 +380,6 @@
       {
         "title": "速度",
         "path": "解锁/速度.md"
-      }
-    ]
-  },
-  {
-    "title": "通用信息",
-    "children": [
-      {
-        "title": "1.0 版本终于来啦",
-        "path": "通用信息/1.0 版本终于来啦.md"
-      },
-      {
-        "title": "Output",
-        "path": "通用信息/Output.md"
-      },
-      {
-        "title": "入门指南",
-        "path": "通用信息/入门指南.md"
-      },
-      {
-        "title": "加载备份",
-        "path": "通用信息/加载备份.md"
-      },
-      {
-        "title": "外部编辑器",
-        "path": "通用信息/外部编辑器.md"
-      },
-      {
-        "title": "第一个程序",
-        "path": "通用信息/第一个程序.md"
-      },
-      {
-        "title": "统计数据",
-        "path": "通用信息/统计数据.md"
       }
     ]
   }

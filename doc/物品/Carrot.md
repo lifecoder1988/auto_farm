@@ -1,7 +1,6 @@
-<line-height=50%><size=32px>Carrot</size>
-</line-height>
+Carrot
 通过收获胡萝卜获得。
 
-拥有数量：65
 
-更多相关信息请见：<u><link="docs/unlocks/carrots.md">Carrots</link></u>
+
+更多相关信息请见：<u><link="doc/解锁/carrots.md">Carrots</link></u>

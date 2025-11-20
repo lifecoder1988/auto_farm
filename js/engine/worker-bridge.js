@@ -19,6 +19,7 @@ export function handleWorkerCallFactory(ctx) {
   const useWater = ctx.useWater?.bind(ctx);
   const useFertilizer = ctx.useFertilizer?.bind(ctx);
   const getGroundType = ctx.getGroundType?.bind(ctx);
+  const getCropType = ctx.getCropType?.bind(ctx);
 
   const app = ctx;        // 保留兼容
   const msg = ctx.msg;
@@ -203,6 +204,10 @@ export function handleWorkerCallFactory(ctx) {
         respond(getGroundType?.(args?.[0]));
         return;
 
+      case "getCropType":
+        respond(getCropType?.(args?.[0]));
+        return;
+      
       // --------------------
       // ⭐ 迷宫指令
       // --------------------

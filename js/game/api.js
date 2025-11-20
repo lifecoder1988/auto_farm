@@ -77,6 +77,12 @@ export function createGameAPI(app) {
     return soil.getType(e.x, e.y);
   }
 
+  function getCropType(id) {
+    const e = entityManager.getEntity(id);
+    if (!e) return;
+    return cropManager.get(e.x, e.y)?.type;
+  }
+
   // =====================================================
   // 浇水
   // =====================================================
@@ -302,6 +308,7 @@ export function createGameAPI(app) {
     createMaze,
     loadCodingFeatures,
     getGroundType,
+    getCropType,
     canMove,
     clear,
   };

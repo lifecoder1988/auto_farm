@@ -260,6 +260,11 @@ async function getGroundType(entityId) {
   return callMain("getGroundType", [id], true);
 }
 
+async function getCropType(entityId) {
+  requireFeature(CONSTANTS.UNLOCKS.Senses);
+  const id = _resolveEntityId(entityId);
+  return callMain("getCropType", [id], true);
+}
 async function setActive(id) {
   return callMain("setActive", [id], false);
 }

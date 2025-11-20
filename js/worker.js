@@ -236,6 +236,16 @@ function random() {
   return Math.random();
 }
 
+function max(...args) {
+  requireFeature(CONSTANTS.UNLOCKS.Utilities);
+  return Math.max(...args);
+}
+
+function min(args) {
+  requireFeature(CONSTANTS.UNLOCKS.Utilities);
+  return Math.min(args);
+}
+
 function abs(x) {
   requireFeature(CONSTANTS.UNLOCKS.Utilities);
   return Math.abs(x);
@@ -271,6 +281,25 @@ async function getCropType(entityId) {
   const id = _resolveEntityId(entityId);
   return callMain("getCropType", [id], true);
 }
+
+async function measure(entityId) {
+  requireFeature(CONSTANTS.UNLOCKS.Senses);
+  const id = _resolveEntityId(entityId);
+  return callMain("measure", [id], true);
+}
+
+async function getMaxEntityCount() {
+  return callMain("getMaxEntityCount", [], true);
+}
+
+async function numItems(itemType) {
+  return callMain("numItems", [itemType], true);
+}
+
+async function getEntityCount() {
+  return callMain("getEntityCount", [], true);
+}
+
 async function setActive(id) {
   return callMain("setActive", [id], false);
 }
@@ -414,6 +443,8 @@ function autoAwaitAsyncApi(code) {
     "getWater",
     "useFertilizer",
     "random",
+    "max",
+    "min",
     "abs",
     "canMove",
     "clear",
@@ -550,6 +581,8 @@ async function runUserCode(raw) {
       "getWater",
       "useFertilizer",
       "random",
+      "max",
+      "min",
       "abs",
       "canMove",
       "clear",
@@ -586,6 +619,8 @@ async function runUserCode(raw) {
       getWater,
       useFertilizer,
       random,
+      max,
+      min,
       abs,
       canMove,
       clear,

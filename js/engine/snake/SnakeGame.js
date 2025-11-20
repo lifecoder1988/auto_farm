@@ -43,6 +43,10 @@ export class SnakeGame {
     this.spawnFood();
   }
 
+  getFood() {
+    return this.model.food;
+  }
+
   spawnFood() {
     const need = 64;
 

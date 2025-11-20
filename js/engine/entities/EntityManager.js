@@ -1,4 +1,4 @@
-import { Entity } from './Entity.js';
+import { Entity } from "./Entity.js";
 
 export class EntityManager {
   constructor() {
@@ -12,22 +12,35 @@ export class EntityManager {
         id: 0,
         x: 0,
         y: 0,
-        type: 'drone',
-        hat: 'Straw_Hat'
-      })
+        type: "drone",
+        hat: "Straw_Hat",
+      }),
     ];
     this.activeId = 0;
   }
 
+  /**
+   * 获取当前实体数量（包括 active 本体 + 所有 spawn）
+   */
+  getCount() {
+    return this.entities.length;
+  }
+
   fromPlain(list = []) {
     if (!list.length) return this.initDefault();
-    this.entities = list.map(e => new Entity(e));
+    this.entities = list.map((e) => new Entity(e));
     this.activeId = this.entities[0].id;
   }
 
-  getAll() { return this.entities; }
-  getById(id) { return this.entities.find(e => e.id === id) || null; }
-  getActive() { return this.getById(this.activeId); }
+  getAll() {
+    return this.entities;
+  }
+  getById(id) {
+    return this.entities.find((e) => e.id === id) || null;
+  }
+  getActive() {
+    return this.getById(this.activeId);
+  }
 
   setActive(id) {
     if (this.getById(id)) {
@@ -38,7 +51,7 @@ export class EntityManager {
   }
 
   getEntity(id) {
-    return id != null ? (this.getById(id) || this.getActive()) : this.getActive();
+    return id != null ? this.getById(id) || this.getActive() : this.getActive();
   }
 
   move(direction, worldSize, id) {
@@ -55,8 +68,8 @@ export class EntityManager {
       id: newId,
       x: ref?.x ?? 0,
       y: ref?.y ?? 0,
-      type: ref?.type ?? 'drone',
-      hat: ref?.hat ?? 'Straw_Hat'
+      type: ref?.type ?? "drone",
+      hat: ref?.hat ?? "Straw_Hat",
     });
 
     this.entities.push(ent);
@@ -64,7 +77,7 @@ export class EntityManager {
   }
 
   despawn(id) {
-    const idx = this.entities.findIndex(e => e.id === id);
+    const idx = this.entities.findIndex((e) => e.id === id);
     if (idx < 0) return;
 
     this.entities.splice(idx, 1);
@@ -83,6 +96,6 @@ export class EntityManager {
   }
 
   toPlain() {
-    return this.entities.map(e => e.toPlain());
+    return this.entities.map((e) => e.toPlain());
   }
 }

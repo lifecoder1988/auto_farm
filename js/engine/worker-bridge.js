@@ -21,7 +21,13 @@ export function handleWorkerCallFactory(ctx) {
 
   const useFertilizer = ctx.useFertilizer?.bind(ctx);
   const getGroundType = ctx.getGroundType?.bind(ctx);
+  const measure = ctx.measure?.bind(ctx);
   const getCropType = ctx.getCropType?.bind(ctx);
+  const getMaxEntityCount = ctx.getMaxEntityCount?.bind(ctx);
+  const getEntityCount = ctx.getEntityCount?.bind(ctx);
+  const numItems = ctx.numItems?.bind(ctx);
+
+
 
   const app = ctx;        // 保留兼容
   const msg = ctx.msg;
@@ -214,6 +220,22 @@ export function handleWorkerCallFactory(ctx) {
 
       case "getCropType":
         respond(getCropType?.(args?.[0]));
+        return;
+
+      case "measure":
+        respond(measure?.(args?.[0]));
+        return;
+      
+      case "getMaxEntityCount":
+        respond(getMaxEntityCount?.());
+        return;
+      
+      case "getEntityCount":
+        respond(getEntityCount?.());
+        return;
+      
+      case "numItems":
+        respond(numItems?.(args?.[0]));
         return;
       
       // --------------------

@@ -33,12 +33,61 @@ function setupCustomCompletions() {
         { caption: "till", value: "till()", meta: "game api" },
         { caption: "useWater", value: "useWater()", meta: "game api" },
         { caption: "getWater", value: "getWater()", meta: "game api" },
-        { caption: "useFertilizer", value: "useFertilizer()", meta: "game api" },
-        { caption: "getGroundType", value: "getGroundType()", meta: "game api" },
+        { caption: "getWorldSize", value: "getWorldSize()", meta: "game api" },
+        {
+          caption: "useFertilizer",
+          value: "useFertilizer()",
+          meta: "game api",
+        },
+        {
+          caption: "getGroundType",
+          value: "getGroundType()",
+          meta: "game api",
+        },
         { caption: "getCropType", value: "getCropType()", meta: "game api" },
         { caption: "canHarvest", value: "canHarvest()", meta: "game api" },
         { caption: "canMove", value: "canMove()", meta: "game api" },
         { caption: "clear", value: "clear()", meta: "game api" },
+        { caption: "random", value: "random()", meta: "game api" },
+        { caption: "max", value: "max()", meta: "game api" },
+        { caption: "min", value: "min()", meta: "game api" },
+        { caption: "abs", value: "abs()", meta: "game api" },
+        {
+          caption: "getMaxEntityCount",
+          value: "getMaxEntityCount()",
+          meta: "game api",
+        },
+        {
+          caption: "getEntityCount",
+          value: "getEntityCount()",
+          meta: "game api",
+        },
+        {
+          caption: "numItems",
+          value: "numItems(itemType)",
+          meta: "game api",
+          docHTML: `
+    <b>numItems(itemType)</b><br/>
+    获取背包中指定物品的数量。<br/><br/>
+    <b>参数 itemType（字符串）：</b><br/>
+    可以是以下之一：<br/>
+    <code>
+      "pumpkin"   南瓜<br/>
+      "gold"      金币<br/>
+      "apple"     苹果<br/>
+      "hay"       草料<br/>
+      "wood"      木头<br/>
+      "carrot"    胡萝卜<br/>
+      "cactus"    仙人掌<br/>
+      "sunflower" 向日葵<br/>
+      "water"     水<br/>
+      "fertilizer" 肥料<br/>
+    </code><br/>
+    <b>返回值：</b> 数字，当前拥有的数量。
+  `,
+        },
+
+        { caption: "measure", value: "measure()", meta: "game api" },
 
         {
           caption: "console.log(msg)",
@@ -90,16 +139,14 @@ function setupCustomCompletions() {
         },
 
         {
-          caption:
-            "spawn(async ({ move, plant, harvest, id }) => {})",
+          caption: "spawn(async ({ move, plant, harvest, id }) => {})",
           meta: "snippet",
           value: `spawn(async ({ move, plant, harvest, id }) => {
   await move(0, 1)
   await plant('土豆')
   await harvest()
 })`,
-          docHTML:
-            "<b>spawn(callback)</b><br/>创建一个分身，可并行运行。",
+          docHTML: "<b>spawn(callback)</b><br/>创建一个分身，可并行运行。",
         },
       ];
 

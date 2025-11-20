@@ -5,7 +5,7 @@
     <title>游戏文档浏览器</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- marked -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@17.0.0/lib/marked.umd.min.js"></script>
     <style>
       :root {
         --bg: #111;
@@ -331,20 +331,47 @@
           if (!res.ok) throw new Error("HTTP " + res.status);
           const md = await res.text();
 
-          // 收集标题生成 TOC
           const headings = [];
-          const renderer = new marked.Renderer();
-          renderer.heading = function (text, level, raw, slugger) {
-            const slug = slugger.slug(raw);
-            headings.push({ text, level, slug });
-            return `<h${level} id="${slug}">${text}</h${level}>`;
-          };
 
-          const html = marked.parse(md, { renderer });
+          // ---- stable slugify for marked v17 ----
+          function slugify(str) {
+            return String(str)
+              .trim()
+              .toLowerCase()
+              .replace(/[^\w\- ]+/g, "")
+              .replace(/\s+/g, "-");
+          }
+
+          // ---- extract text from heading token ----
+          function extractText(tokenOrString) {
+            if (!tokenOrString) return "";
+            if (typeof tokenOrString === "string") return tokenOrString;
+            if (typeof tokenOrString === "object") {
+              return tokenOrString.text || tokenOrString.raw || "";
+            }
+            return String(tokenOrString);
+          }
+
+          // ---- Marked v17 Renderer ----
+          marked.use({
+            renderer: {
+              heading(text, level, raw) {
+                const pure = extractText(text);
+                const slug = slugify(pure);
+
+                headings.push({ text: pure, level, slug });
+
+                return `<h${level} id="${slug}">${pure}</h${level}>`;
+              },
+            },
+          });
+
+          // ---- render with Marked v17 ----
+          const html = marked.parse(md);
+
           contentEl.innerHTML = html;
           tocEl.innerHTML = buildTOCHtml(headings);
 
-          // 滚动到顶部
           document.getElementById("content-wrap").scrollTop = 0;
         } catch (err) {
           contentEl.innerHTML =
@@ -389,24 +416,7 @@
 
       // ======== 5. 初始化 ========
 
-      buildNav();
-
-      const defaultDoc = findFirstDoc(DOCS);
-      if (defaultDoc) {
-        // 自动选中第一个文档
-        const link = document.querySelector(
-          `.nav-link[data-doc-path="${defaultDoc.path}"]`
-        );
-        if (link) {
-          setActiveLink(link);
-        }
-        loadDoc(defaultDoc.path, defaultDoc.title);
-      } else {
-        contentEl.textContent = "没有配置任何文档。";
-      }
-       initDocs();
+      initDocs();
     </script>
-
-   
   </body>
 </html>

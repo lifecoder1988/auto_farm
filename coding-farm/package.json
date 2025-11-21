@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "ace-builds": "^1.43.4",
+    "github-slugger": "^2.0.0",
+    "marked": "^17.0.1",
     "next": "16.0.3",
     "pixi.js": "^7.4.3",
     "react": "19.2.0",

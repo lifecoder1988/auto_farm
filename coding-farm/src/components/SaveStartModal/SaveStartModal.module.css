@@ -1,0 +1,109 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: url("/images/bg.png") center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.dialog {
+  width: 700px;
+  padding: 40px 32px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.title {
+  font-size: 32px;
+  margin: 0 0 14px;
+  letter-spacing: 1px;
+  font-weight: bold;
+}
+
+.subtitle {
+  margin-top: 0;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+/* 按钮组 */
+.actions {
+  margin-top: 26px;
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+}
+
+.newGameBtn {
+  padding: 12px 26px;
+  font-size: 16px;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  background: #42c259;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(66, 194, 89, 0.4);
+  transition: 0.15s ease-out;
+}
+.newGameBtn:hover {
+  background: #4be067;
+  transform: translateY(-2px);
+}
+
+.loadBtn {
+  padding: 12px 26px;
+  font-size: 16px;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  background: #3a3a3a;
+  color: #fff;
+  transition: 0.15s ease-out;
+}
+.loadBtn:hover {
+  background: #505050;
+  transform: translateY(-2px);
+}
+
+/* 存档区域毛玻璃 */
+.saveListWrap {
+  margin-top: 28px;
+  padding: 22px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.slotList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 600px;
+  overflow: auto;
+  padding-right: 6px;
+}

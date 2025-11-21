@@ -1,0 +1,53 @@
+.consolePanel {
+  grid-area: console;
+  background: var(--panel);
+  border-top: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.consoleDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.summary {
+  cursor: pointer;
+  padding: 8px 14px;
+  font-weight: 600;
+  list-style: none;
+}
+
+.output {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 14px;
+
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.logLine {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.logTime {
+  color: #4caf50;
+  flex-shrink: 0;
+}
+
+.logFrom {
+  font-weight: bold;
+}
+
+.logBody {
+  margin: 0;
+  white-space: pre-wrap;
+}

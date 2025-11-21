@@ -1,0 +1,90 @@
+.saveCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+
+  padding: 18px 20px;
+  border-radius: 16px;
+
+  /* 毛玻璃 + 暗色卡片风格 */
+  background: rgba(0, 0, 0, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+
+  transition: transform 0.15s ease-out, background 0.15s ease-out;
+}
+
+/* 鼠标悬停整体动效 */
+.saveCard:hover {
+  background: rgba(0, 0, 0, 0.48);
+  transform: translateY(-2px);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.time {
+  font-size: 13px;
+  color: #bbb;
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+.btns {
+  display: flex;
+  gap: 10px;
+}
+
+/* 基础按钮样式 */
+.btn {
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.15s ease-out;
+}
+
+/* 加载 */
+.load {
+  background: #3ecf5a;
+  color: white;
+}
+.load:hover {
+  background: #4be66d;
+  transform: translateY(-2px);
+}
+
+/* 删除 */
+.delete {
+  background: #d74c4c;
+  color: white;
+}
+.delete:hover {
+  background: #f25b5b;
+  transform: translateY(-2px);
+}
+
+/* 覆盖（未来扩展用） */
+.cover {
+  background: #4d4d4d;
+  color: white;
+}
+.cover:hover {
+  background: #5a5a5a;
+  transform: translateY(-2px);
+}

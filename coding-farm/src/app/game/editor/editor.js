@@ -1,7 +1,7 @@
 // js/game/editor.js
 import { DEFAULT_CODE } from "../data/default_code.js";
 
-export function setupEditor(app, saveData = null) {
+export async function setupEditor(app, saveData = null) {
   const editor = ace.edit("editor");
 
   // 设置初始化代码（支持从存档恢复）

@@ -1,7 +1,7 @@
 // js/game/api.js
 
 import { CROP_TYPES } from "../engine/crops/CropManager.js";
-import {Crop} from "../engine/crops/Crop.js";
+import { Crop } from "../engine/crops/Crop.js";
 import CONSTANTS from "../engine/core/constants.js";
 /**
  * 构建所有游戏 API（供 worker 与 UI 调用）
@@ -13,7 +13,7 @@ export function createGameAPI(app) {
   const mazeManager = app.mazeManager;
   const unlock = app.unlockManager;
   const inventory = app.inventory;
-  const appendSystemLog = app.appendSystemLog;
+  const appendSystemLog = app.ui.console.system;
   // =====================================================
   // 工具：世界信息
   // =====================================================
@@ -60,15 +60,14 @@ export function createGameAPI(app) {
   function till(id) {
     const e = entityManager.getEntity(id);
     if (!e) return;
-    if(soil.getType(e.x, e.y) === "grass") {
-        soil.makeSoil(e.x, e.y);
-        cropManager.delete(e.x, e.y);
-        return 
+    if (soil.getType(e.x, e.y) === "grass") {
+      soil.makeSoil(e.x, e.y);
+      cropManager.delete(e.x, e.y);
+      return;
     } else {
-        cropManager.delete(e.x, e.y);
-        soil.makeGrass(e.x, e.y);
+      cropManager.delete(e.x, e.y);
+      soil.makeGrass(e.x, e.y);
     }
-    
   }
 
   function getGroundType(id) {
@@ -89,15 +88,14 @@ export function createGameAPI(app) {
   function measure(id) {
     const e = entityManager.getEntity(id);
     if (!e) return;
-    if(app.gameState.mode === "snake") {
-        return app.snakeGame.getFood();
+    if (app.gameState.mode === "snake") {
+      return app.snakeGame.getFood();
     }
     const maze = mazeManager.isInMaze(e.x, e.y);
-    if(maze) {
-        return maze.getTreasureGlobal();
+    if (maze) {
+      return maze.getTreasureGlobal();
     }
     return null;
-    
   }
   // =====================================================
   // 浇水
@@ -194,15 +192,15 @@ export function createGameAPI(app) {
     return Date.now() - crop.plantedAt >= crop.matureTime;
   }
 
-  function canMove(direction,id) {
+  function canMove(direction, id) {
     // d "up" "down" "left" "right"
     const e = entityManager.getEntity(id);
     if (!e) return false;
     const maze = mazeManager.isInMaze(e.x, e.y);
-    if (maze){
-        if (!maze.canMove(e.x, e.y, direction)) return false;
+    if (maze) {
+      if (!maze.canMove(e.x, e.y, direction)) return false;
     }
-    return true 
+    return true;
   }
 
   function clear(id) {
@@ -251,31 +249,35 @@ export function createGameAPI(app) {
   // 分身创建
   // =====================================================
   function spawn(id) {
-   
     const count = entityManager.getCount();
 
-     const limit = unlock.getAbilityValue(CONSTANTS.UNLOCKS.Megafarm, "spawn并发数量", 0);
-     if (count >= limit) {
-        console.log("❌ 分身数量已达上限");
-        appendSystemLog("❌ 分身数量已达上限");
-        return null;
+    const limit = unlock.getAbilityValue(
+      CONSTANTS.UNLOCKS.Megafarm,
+      "spawn并发数量",
+      0
+    );
+    if (count >= limit) {
+      console.log("❌ 分身数量已达上限");
+      appendSystemLog("❌ 分身数量已达上限");
+      return null;
     }
     return entityManager.spawn(entityManager.activeId).id;
   }
 
-
   function getMaxEntityCount() {
-    return unlock.getAbilityValue(CONSTANTS.UNLOCKS.Megafarm, "spawn并发数量", 1);
+    return unlock.getAbilityValue(
+      CONSTANTS.UNLOCKS.Megafarm,
+      "spawn并发数量",
+      1
+    );
   }
   function getEntityCount() {
     return entityManager.getCount();
   }
-  
+
   function numItems(itemType) {
     return inventory.get(itemType);
   }
-
-
 
   function despawn(id) {
     entityManager.despawn(id);
@@ -307,7 +309,13 @@ export function createGameAPI(app) {
   // =====================================================
   function changeCharacter(type, id) {
     const key = String(type).trim().toLowerCase();
-    const map = { drone: "drone", 无人机: "drone", dino: "dino", 恐龙: "dino", snake: "snake" };
+    const map = {
+      drone: "drone",
+      无人机: "drone",
+      dino: "dino",
+      恐龙: "dino",
+      snake: "snake",
+    };
 
     if (!map[key]) return;
 

@@ -1,82 +1,44 @@
 "use client";
 
-import { initStartUI } from "./ui/save-ui";
-import { initGame } from "./game";
+import { initGame } from "./initGame";
+import type { UiBridge } from "./types"; // ← 你需要新建这个文件（我下面会给）
 
-// -----------------------------
-// 1) 动态加载 Ace（CDN版）
-// -----------------------------
-
-let aceLoading = false;
-let aceReady = false;
-
-function loadAceScript(src: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = src;
-    script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Load script failed: " + src));
-    document.body.appendChild(script);
-  });
-}
-
-async function loadAceFromCDN() {
-  if (aceReady) return;
-
-  if (aceLoading) {
-    // 等待别的地方加载完成
-    while (!aceReady) await new Promise((r) => setTimeout(r, 30));
-    return;
+async function waitAceReady() {
+  // 等待 next/script 注入的 ace
+  while (!(window as any).ace) {
+    await new Promise((r) => setTimeout(r, 50));
   }
 
-  aceLoading = true;
+  // 等待 language_tools 就绪
+  while (!(window as any).ace.require("ace/ext/language_tools")) {
+    await new Promise((r) => setTimeout(r, 50));
+  }
 
-  console.log("[initMain] Loading Ace...");
-
-  // 加载 ace 基础
-  await loadAceScript(
-    "https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-min-noconflict/ace.js"
-  );
-
-  // 加载自动补全插件
-  await loadAceScript(
-    "https://cdn.jsdelivr.net/npm/ace-builds@1.32.0/src-noconflict/ext-language_tools.js"
-  );
-
-  // 再等待一下确保 window.ace 初始化完毕
-  await new Promise((r) => setTimeout(r, 50));
-
-  aceReady = true;
-
-  console.log("[initMain] Ace loaded.");
-}
-
-/**
- * 等价于旧版 onAceReady(cb)
- */
-async function waitAceReady() {
-  if (aceReady || (window as any).ace) return;
-  await loadAceFromCDN();
+  console.log("[initMain] Ace is fully ready.");
 }
 
 // -----------------------------
-// 2) initMain（核心入口）
+// initMain (主入口)
 // -----------------------------
 
-export async function initMain() {
+export interface InitMainOptions {
+  saveData: any;
+  slotId: number;
+  slotName: string;
+  ui: UiBridge;
+}
+
+export async function initMain(options: InitMainOptions) {
   console.log("[initMain] start...");
 
-  // ⭐ 等 Ace 加载完成
-  await waitAceReady();
+  await waitAceReady(); // ⭐ 所有 initGame 之前必须等待 Ace
 
-  console.log("[initMain] Ace ready, now init StartUI...");
+  console.log("[initMain] Ace ready → initGame");
 
-  // ⭐ 初始化启动界面（显示 新游戏 / 加载存档）
-  initStartUI({
-    onStartGame({ saveData, slotId, slotName }) {
-      console.log("[initMain] User selected slot -> Init Game");
-      initGame({ saveData, slotId, slotName });
-    },
+  initGame({
+    saveData: options.saveData,
+    slotId: options.slotId,
+    slotName: options.slotName,
+    ui: options.ui,
   });
 }

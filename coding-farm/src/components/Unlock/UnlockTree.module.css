@@ -1,0 +1,43 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog {
+  width: 1200px;
+  max-height: 80vh;
+  background: #1e1e1e;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #444;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.scroll {
+  flex: 1;
+  overflow: auto;
+}
+
+#tech-graph canvas {
+  width: 100% !important;
+  height: auto !important;
+}

@@ -1,0 +1,56 @@
+/* ----------- Alert 弹窗遮罩 ----------- */
+#alert-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+/* 用 hidden 控制显示/隐藏 */
+#alert-overlay.hidden {
+  display: none;
+}
+
+/* ----------- 弹窗主体：直接居中定位 ----------- */
+#alert-dialog {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+
+  width: 360px;
+  padding: 24px 28px;
+  border-radius: 16px;
+
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* 标题 */
+#alert-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* 内容 */
+#alert-message {
+  font-size: 14px;
+  color: #eee;
+  opacity: 0.9;
+  line-height: 1.6em;
+}
+
+/* 按钮区域 */
+#alert-actions {
+  display: flex;
+  justify-content: flex-end;
+}

@@ -1,0 +1,15 @@
+.header {
+  grid-area: header;
+  padding: 10px 14px;
+  background: var(--panel);
+  border-bottom: 1px solid #333;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.header h1 {
+  font-size: 16px;
+  margin: 0;
+  opacity: 0.9;
+}
